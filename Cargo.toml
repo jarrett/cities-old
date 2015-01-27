@@ -1,0 +1,14 @@
+[package]
+
+name = "cities"
+version = "0.0.1"
+authors = ["Jarrett Colby <jarrettcolby@gmail.com>"]
+
+[dependencies.gl]
+git = "https://github.com/bjz/gl-rs"
+
+[dependencies.glfw]
+git = "https://github.com/bjz/glfw-rs.git"
+
+[dependencies.cgmath]
+git = "https://github.com/bjz/cgmath-rs.git"
