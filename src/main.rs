@@ -3,6 +3,7 @@ extern crate gl;
 extern crate cgmath;
 
 mod camera;
+mod texture;
 
 //use gl::types::*;
 use glfw::*;
