@@ -24,6 +24,7 @@ impl Camera {
             zoom: zoom, model_view: Matrix4::identity(), projection: Matrix4::identity(),
             width: width, height: height
         };
+        cam.orbit_to(3);
         cam.rebuild_model_view();
         cam.rebuild_projection();
         cam

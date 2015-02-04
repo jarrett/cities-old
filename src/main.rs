@@ -14,15 +14,20 @@ mod chunk;
 mod terrain_program;
 mod water_program;
 
-use glfw::*;
 use cgmath::*;
+use glfw::{Context, Action, Key};
 
 use camera::Camera;
+use axis_indicator::AxisIndicator;
 
 fn main() {
     let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).ok().expect("Failed to init glfw");
     
-    let (mut window, _) = glfw.create_window(
+    glfw.window_hint(glfw::WindowHint::ContextVersion(4, 1));
+    glfw.window_hint(glfw::WindowHint::OpenglForwardCompat(true));
+    glfw.window_hint(glfw::WindowHint::OpenglProfile(glfw::OpenGlProfileHint::Core));
+    
+    let (mut window, events) = glfw.create_window(
         1280, 960, "Cities", glfw::WindowMode::Windowed
     ).expect("Failed to create GLFW window.");
     
@@ -41,6 +46,8 @@ fn main() {
         gl::ClearColor(0.9, 0.94, 1.0, 1.0);
     }
     
+    let axis = AxisIndicator::new();
+    
     let mut cam = Camera::new(1280, 960, 10f32);
     
     while !window.should_close() {
@@ -51,9 +58,12 @@ fn main() {
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
         
+        axis.draw(&cam, 500.0 / cam.zoom);
+        
         window.swap_buffers();
         
         glfw.poll_events();
+        glfw::flush_messages(&events);
         
         // Orbit camera with Q and E.
         if window.get_key(Key::Q) == Action::Press {
@@ -66,21 +76,21 @@ fn main() {
         // Pan camera with W and S.
         if window.get_key(Key::W) == Action::Press {
             let zoom = cam.zoom();
-            cam.translate(Vector2::new(0f32, -20f32 / zoom));
+            cam.translate(Vector2::new(0.0, -20.0 / zoom));
         }
         if window.get_key(Key::S) == Action::Press {
             let zoom = cam.zoom();
-            cam.translate(Vector2::new(0f32, -20f32 / zoom));
+            cam.translate(Vector2::new(0.0, 20.0 / zoom));
         }
         
         // Pan camera with A and D.
         if window.get_key(Key::A) == Action::Press {
             let zoom = cam.zoom();
-            cam.translate(Vector2::new(20f32 / zoom, 0f32));
+            cam.translate(Vector2::new(20.0 / zoom, 0.0));
         }
         if window.get_key(Key::D) == Action::Press {
             let zoom = cam.zoom();
-            cam.translate(Vector2::new(-20f32 / zoom, 0f32));
+            cam.translate(Vector2::new(-20.0 / zoom, 0.0));
         }
         
         // Zoom camera with Z and X.

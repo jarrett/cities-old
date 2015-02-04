@@ -19,7 +19,7 @@ pub struct AxisIndicator {
 }
 
 impl AxisIndicator {
-    pub fn new() {
+    pub fn new() -> AxisIndicator {
         let mut ai = AxisIndicator {
             program: 0, array_buffer: 0, element_array_buffer: 0, vao: 0,
             model_idx: 0, projection_idx: 0, scale_idx: 0
@@ -90,6 +90,8 @@ impl AxisIndicator {
             gl::BindBuffer(gl::ARRAY_BUFFER, 0);
             gl::BindVertexArray(0);
         }
+        
+        ai
     }
 
     pub fn draw(&self, camera: &Camera, scale: f32) {
