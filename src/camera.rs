@@ -1,6 +1,4 @@
-extern crate cgmath;
-
-use self::cgmath::*;
+use cgmath::*;
 
 // 28 degrees on the Z axis.
 static CAMERA_TILT: Rad<f32> = Rad { s: 3.97935069f32 };
@@ -9,14 +7,14 @@ static CAMERA_TILT: Rad<f32> = Rad { s: 3.97935069f32 };
 static CAMERA_ORBIT: Rad<f32> = Rad { s: 0.488692191f32 };
 
 pub struct Camera {
-    z_rotation: Rad<f32>,
-    orbit: u8,
-    translation: Vector2<f32>,
-    zoom: f32,
-    model_view: Matrix4<f32>,
-    projection: Matrix4<f32>,
-    width: u16,
-    height: u16
+    pub z_rotation: Rad<f32>,
+    pub orbit: u8,
+    pub translation: Vector2<f32>,
+    pub zoom: f32,
+    pub model_view: Matrix4<f32>,
+    pub projection: Matrix4<f32>,
+    pub width: u16,
+    pub height: u16
 }
 
 impl Camera {

@@ -4,6 +4,9 @@ name = "cities"
 version = "0.0.1"
 authors = ["Jarrett Colby <jarrettcolby@gmail.com>"]
 
+[dependencies.num]
+num = "*"
+
 [dependencies.gl]
 git = "https://github.com/bjz/gl-rs"
 

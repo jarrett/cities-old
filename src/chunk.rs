@@ -1,15 +1,20 @@
 use std::mem;
-use world::World;
+use std::ptr;
 use libc::{c_void};
 use cgmath::*;
 use gl;
 use gl::types::*;
 
+use world::World;
+use terrain_program::TerrainProgram;
+use water_program::WaterProgram;
+use camera::Camera;
+
 pub struct Chunk {
     terrain_positions: Vec<Vector3<f32>>,
     terrain_normals: Vec<Vector3<f32>>,
   
-    water_positions: Vec<Vector2<f32>>,
+    water_positions: Vec<Vector3<f32>>,
     water_depths: Vec<f32>,
   
     min_x:    u32, // Minimum X position.
@@ -29,6 +34,69 @@ pub struct Chunk {
 }
 
 impl Chunk {
+    pub fn new(
+        terrain_program: &TerrainProgram, water_program: &WaterProgram,
+        min_x: u32, min_y: u32, x_verts: u32, y_verts: u32
+    ) -> Chunk {
+        let vec_size: usize = (x_verts * y_verts) as usize;
+        let mut chunk = Chunk {
+            terrain_positions: Vec::with_capacity(vec_size),
+            terrain_normals:   Vec::with_capacity(vec_size),
+            water_positions:   Vec::with_capacity(vec_size),
+            water_depths:      Vec::with_capacity(vec_size),
+            
+            min_x:   min_x,           min_y:   min_y,
+            x_verts: x_verts,         y_verts: y_verts,
+            x_size:  x_verts - 1,     y_size:  y_verts - 1,
+            
+            index_buffer: 0, terrain_position_buffer: 0, terrain_normal_buffer: 0,
+            terrain_vao: 0, water_position_buffer: 0, water_depth_buffer: 0, water_vao: 0
+        };
+        
+        // Initialize each vertex to a default value. X and Y positions can be determined
+        // with the information we already have. For the water, the Z position is always
+        // the same. For the terrain, the Z position defaults to zero. Normals default to
+        // zero.
+        let mut i: usize = 0;
+        for y in 0u32..y_verts {
+            for x in 0u32..x_verts {
+                // The absolutize functions require signed values.
+                let x_s: i32 = x as i32;
+                let y_s: i32 = y as i32;
+                
+                chunk.water_depths[i] = 0f32;
+                
+                chunk.water_positions[i].x   = chunk.absolutize_x(x_s) as f32;
+                chunk.water_positions[i].y   = chunk.absolutize_y(y_s) as f32;
+                chunk.water_positions[i].z   = 5f32;
+                
+                chunk.terrain_positions[i].x = chunk.absolutize_x(x_s) as f32;
+                chunk.terrain_positions[i].y = chunk.absolutize_y(y_s) as f32;
+                chunk.terrain_positions[i].z = 0f32;
+                
+                chunk.terrain_normals[i].x   = 0f32;
+                chunk.terrain_normals[i].y   = 0f32;
+                chunk.terrain_normals[i].z   = 0f32;
+                
+                i += 1;
+            }
+        }
+        
+        unsafe {
+            gl::GenBuffers(1,      &mut chunk.terrain_position_buffer);
+            gl::GenBuffers(1,      &mut chunk.terrain_normal_buffer);
+            gl::GenBuffers(1,      &mut chunk.index_buffer);
+            gl::GenVertexArrays(1, &mut chunk.terrain_vao);
+            gl::GenBuffers(1,      &mut chunk.water_position_buffer);
+            gl::GenBuffers(1,      &mut chunk.water_depth_buffer);
+            gl::GenVertexArrays(1, &mut chunk.water_vao);
+        }
+        
+        chunk.configure_vaos(terrain_program, water_program);
+        
+        chunk
+    }
+    
     // Signed because we can look beyond the boundaries of the current chunk.
     pub fn absolutize_x(&self, rel_x: i32) -> i32 {
         rel_x + self.min_x as i32
@@ -39,11 +107,32 @@ impl Chunk {
         rel_y + self.min_y as i32
     }
     
+    pub fn relativize_x(&self, abs_x: u32) -> u32 {
+        abs_x - self.min_x
+    }
+    
+    pub fn relativize_y(&self, abs_y: u32) -> u32 {
+        abs_y - self.min_y
+    }
+    
     // Returns the index of the vertex at the given relative coords.
     pub fn vi(&self, rel_x: u32, rel_y: u32) -> usize {
         ((self.x_verts * rel_y) + rel_x) as usize
     }
-  
+    
+    pub fn vert_position_at(&self, abs_x: u32, abs_y: u32) -> Option<Vector3<f32>> {
+      if (
+          abs_x >= self.min_x && abs_x <= (self.min_x + self.x_size) &&
+          abs_y >= self.min_y && abs_y <= (self.min_y + self.y_size)
+      ) {
+          return Some(self.terrain_positions[
+            self.vi(self.relativize_x(abs_x), self.relativize_y(abs_y))
+          ]);
+      } else {
+          None
+      }
+    }
+    
     pub fn buffer_depths(&mut self) {
         unsafe {
           gl::BindBuffer(gl::ARRAY_BUFFER, self.water_depth_buffer);
@@ -130,7 +219,6 @@ impl Chunk {
     both ways for the purpose of normal calculation. Kind of weird, but not an issue
     practically speaking.) */
     pub fn calc_normals(&mut self, world: &World) {
-        
         for rel_y in 0u32..(self.y_verts) {
             for rel_x in 0u32..(self.x_verts) {
                 // Calculate the normal for the vertex at (rel_x, rel_y). (rel_x, rel_y)
@@ -207,6 +295,84 @@ impl Chunk {
                 sum_norm.add_self_v(&tri_norm);
             },
             _ => {}
+        }
+    }
+    
+    fn configure_vaos(&mut self, terrain_program: &TerrainProgram, water_program: &WaterProgram) {
+        unsafe {
+            // Terrain.
+            gl::BindVertexArray(self.terrain_vao);
+        
+            gl::BindBuffer(gl::ARRAY_BUFFER, self.terrain_position_buffer);
+            gl::EnableVertexAttribArray(terrain_program.position_idx);
+            gl::VertexAttribPointer(terrain_program.position_idx, 3, gl::FLOAT, gl::FALSE, 0, ptr::null());
+        
+            gl::BindBuffer(gl::ARRAY_BUFFER, self.terrain_normal_buffer);
+            gl::EnableVertexAttribArray(terrain_program.normal_idx);
+            gl::VertexAttribPointer(terrain_program.normal_idx, 3, gl::FLOAT, gl::FALSE, 0, ptr::null());
+        
+            gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+            gl::BindVertexArray(0);
+        
+            // Water.
+            gl::BindVertexArray(self.water_vao);
+        
+            gl::BindBuffer(gl::ARRAY_BUFFER, self.water_position_buffer);
+            gl::EnableVertexAttribArray(water_program.position_idx);
+            gl::VertexAttribPointer(water_program.position_idx, 3, gl::FLOAT, gl::FALSE, 0, ptr::null());
+        
+            gl::BindBuffer(gl::ARRAY_BUFFER, self.water_depth_buffer);
+            gl::EnableVertexAttribArray(water_program.depth_idx);
+            gl::VertexAttribPointer(water_program.depth_idx, 1, gl::FLOAT, gl::FALSE, 0, ptr::null());
+        
+            gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+            gl::BindVertexArray(0);
+        }
+    }
+    
+    pub fn draw_terrain(&self, camera: &Camera, terrain_program: &TerrainProgram) {
+        unsafe {
+            gl::BindVertexArray(self.terrain_vao);
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.index_buffer);
+            gl::UseProgram(terrain_program.id);
+            gl::UniformMatrix4fv(terrain_program.model_view_idx, 1, gl::FALSE, mem::transmute(&camera.model_view));
+            gl::UniformMatrix4fv(terrain_program.projection_idx, 1, gl::FALSE, mem::transmute(&camera.projection));
+            terrain_program.bind_textures();
+            // Number of elements to draw = number of quads * 6 verts per quad.
+            gl::DrawElements(gl::TRIANGLES, ((self.x_verts - 1) * (self.y_verts - 1) * 6) as i32, gl::UNSIGNED_SHORT, ptr::null());
+            gl::BindTexture(gl::TEXTURE_2D, 0);
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
+            gl::BindVertexArray(0);
+        }
+    }
+
+    pub fn draw_water(&self, camera: &Camera, water_program: &WaterProgram) {
+        unsafe {
+            gl::BindVertexArray(self.water_vao);
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.index_buffer);
+            gl::UseProgram(water_program.id);
+            gl::UniformMatrix4fv(water_program.model_view_idx, 1, gl::FALSE, mem::transmute(&camera.model_view));
+            gl::UniformMatrix4fv(water_program.projection_idx, 1, gl::FALSE, mem::transmute(&camera.projection));
+            water_program.bind_textures();
+            // Number of elements to draw = number of quads * 6 verts per quad.
+            gl::DrawElements(gl::TRIANGLES, ((self.x_verts - 1) * (self.y_verts - 1) * 6) as i32, gl::UNSIGNED_SHORT, ptr::null());
+            gl::BindTexture(gl::TEXTURE_2D, 0);
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
+            gl::BindVertexArray(0);
+        }
+    }
+}
+
+impl Drop for Chunk {
+    fn drop(&mut self) {
+        unsafe {
+            gl::DeleteBuffers(1,      &self.terrain_position_buffer);
+            gl::DeleteBuffers(1,      &self.terrain_normal_buffer);
+            gl::DeleteBuffers(1,      &self.index_buffer);
+            gl::DeleteVertexArrays(1, &self.terrain_vao);
+            gl::DeleteBuffers(1,      &self.water_position_buffer);
+            gl::DeleteBuffers(1,      &self.water_depth_buffer);
+            gl::DeleteVertexArrays(1, &self.water_vao);
         }
     }
 }

@@ -1,17 +1,23 @@
 extern crate glfw;
 extern crate gl;
 extern crate cgmath;
+extern crate image;
 extern crate libc;
+extern crate num;
 
+mod glutil;
 mod camera;
+mod axis_indicator;
 mod texture;
 mod world;
 mod chunk;
+mod terrain_program;
+mod water_program;
 
-//use gl::types::*;
 use glfw::*;
-use camera::*;
 use cgmath::*;
+
+use camera::Camera;
 
 fn main() {
     let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).ok().expect("Failed to init glfw");
