@@ -1,3 +1,6 @@
+#![feature(io)]
+#![feature(std_misc)]
+
 use std::old_io::File;
 use std::str;
 use std::ffi::CString;
@@ -7,17 +10,19 @@ use gl;
 use gl::types::*;
 use libc;
 
-pub fn get_attrib_location(program: GLuint, name: &str) -> GLint {
+pub fn get_attrib_location(program: GLuint, name: &str) -> GLuint {
     unsafe {
         let c_str = CString::from_slice(name.as_bytes());
         let loc: GLint = gl::GetAttribLocation(program, c_str.as_ptr());
         if loc == -1 {
           panic!("Could not find attribute {}", name);
         }
-        loc
+        loc as GLuint
     }
 }
 
+// The OpenGL API uses signed ints for uniform attribute locations.
+// See e.g. glUniform.
 pub fn get_uniform_location(program: GLuint, name: &str) -> GLint {
     unsafe {
         let c_str = CString::from_slice(name.as_bytes());

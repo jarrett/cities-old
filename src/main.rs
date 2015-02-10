@@ -1,3 +1,5 @@
+#![feature(path)]
+
 extern crate glfw;
 extern crate gl;
 extern crate cgmath;
@@ -10,15 +12,16 @@ mod camera;
 mod axis_indicator;
 mod texture;
 mod world;
+mod terrain;
 mod chunk;
-mod terrain_program;
-mod water_program;
+mod water;
 
 use cgmath::*;
 use glfw::{Context, Action, Key};
 
 use camera::Camera;
 use axis_indicator::AxisIndicator;
+use world::World;
 
 fn main() {
     let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).ok().expect("Failed to init glfw");
@@ -48,17 +51,26 @@ fn main() {
     
     let axis = AxisIndicator::new();
     
-    let mut cam = Camera::new(1280, 960, 10f32);
+    let mut camera = Camera::new(1280, 960, 10f32);
+    
+    let terrain_program = terrain::Program::new();
+    let water_program = water::Program::new();
+    let mut world = World::new(
+        terrain::source::ImageSource::new(&Path::new("assets/height/river-128x128.png"), 5.0),
+        &terrain_program, &water_program,
+        16, 16
+    );
     
     while !window.should_close() {
         let (width, height) = window.get_size();
-        cam.resize(width as u16, height as u16);
+        camera.resize(width as u16, height as u16);
         
         unsafe {
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
         
-        axis.draw(&cam, 500.0 / cam.zoom);
+        axis.draw(&camera, 500.0 / camera.zoom);
+        world.draw(&camera, &terrain_program, &water_program);
         
         window.swap_buffers();
         
@@ -67,38 +79,38 @@ fn main() {
         
         // Orbit camera with Q and E.
         if window.get_key(Key::Q) == Action::Press {
-            cam.decrement_orbit();
+            camera.decrement_orbit();
         }
         if window.get_key(Key::E) == Action::Press {
-            cam.increment_orbit();
+            camera.increment_orbit();
         }
         
         // Pan camera with W and S.
         if window.get_key(Key::W) == Action::Press {
-            let zoom = cam.zoom();
-            cam.translate(Vector2::new(0.0, -20.0 / zoom));
+            let zoom = camera.zoom();
+            camera.translate(Vector2::new(0.0, -20.0 / zoom));
         }
         if window.get_key(Key::S) == Action::Press {
-            let zoom = cam.zoom();
-            cam.translate(Vector2::new(0.0, 20.0 / zoom));
+            let zoom = camera.zoom();
+            camera.translate(Vector2::new(0.0, 20.0 / zoom));
         }
         
         // Pan camera with A and D.
         if window.get_key(Key::A) == Action::Press {
-            let zoom = cam.zoom();
-            cam.translate(Vector2::new(20.0 / zoom, 0.0));
+            let zoom = camera.zoom();
+            camera.translate(Vector2::new(20.0 / zoom, 0.0));
         }
         if window.get_key(Key::D) == Action::Press {
-            let zoom = cam.zoom();
-            cam.translate(Vector2::new(-20.0 / zoom, 0.0));
+            let zoom = camera.zoom();
+            camera.translate(Vector2::new(-20.0 / zoom, 0.0));
         }
         
         // Zoom camera with Z and X.
         if window.get_key(Key::Z) == Action::Press {
-            cam.zoom_by(1.05);
+            camera.zoom_by(1.05);
         }
         if window.get_key(Key::X) == Action::Press {
-            cam.zoom_by(0.9523809524);
+            camera.zoom_by(0.9523809524);
         }
     }
 }

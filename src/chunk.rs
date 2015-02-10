@@ -6,9 +6,11 @@ use gl;
 use gl::types::*;
 
 use world::World;
-use terrain_program::TerrainProgram;
-use water_program::WaterProgram;
+use terrain;
+use water;
 use camera::Camera;
+
+static WATER_Z: f32 = 5.0;
 
 pub struct Chunk {
     terrain_positions: Vec<Vector3<f32>>,
@@ -16,7 +18,7 @@ pub struct Chunk {
   
     water_positions: Vec<Vector3<f32>>,
     water_depths: Vec<f32>,
-  
+    
     min_x:    u32, // Minimum X position.
     min_y:    u32, // Minimum Y position.
     x_verts:  u32, // Number of verts along the X axis.
@@ -30,12 +32,17 @@ pub struct Chunk {
     terrain_vao:              GLuint,
     water_position_buffer:    GLuint,
     water_depth_buffer:       GLuint,
-    water_vao:                GLuint
+    water_vao:                GLuint,
+    
+    positions_buffered:       bool,
+    normals_buffered:         bool,
+    indices_buffered:         bool,
+    depths_buffered:           bool
 }
 
 impl Chunk {
     pub fn new(
-        terrain_program: &TerrainProgram, water_program: &WaterProgram,
+        terrain_program: &terrain::Program, water_program: &water::Program,
         min_x: u32, min_y: u32, x_verts: u32, y_verts: u32
     ) -> Chunk {
         let vec_size: usize = (x_verts * y_verts) as usize;
@@ -50,35 +57,30 @@ impl Chunk {
             x_size:  x_verts - 1,     y_size:  y_verts - 1,
             
             index_buffer: 0, terrain_position_buffer: 0, terrain_normal_buffer: 0,
-            terrain_vao: 0, water_position_buffer: 0, water_depth_buffer: 0, water_vao: 0
+            terrain_vao: 0, water_position_buffer: 0, water_depth_buffer: 0, water_vao: 0,
+            
+            positions_buffered: false, normals_buffered: false,
+            indices_buffered: false, depths_buffered: false
         };
         
         // Initialize each vertex to a default value. X and Y positions can be determined
         // with the information we already have. For the water, the Z position is always
         // the same. For the terrain, the Z position defaults to zero. Normals default to
         // zero.
-        let mut i: usize = 0;
         for y in 0u32..y_verts {
             for x in 0u32..x_verts {
                 // The absolutize functions require signed values.
                 let x_s: i32 = x as i32;
                 let y_s: i32 = y as i32;
+                let abs_x: f32 = chunk.absolutize_x(x_s) as f32;
+                let abs_y: f32 = chunk.absolutize_y(y_s) as f32;
                 
-                chunk.water_depths[i] = 0f32;
+                chunk.water_depths.push(0.0);
+                chunk.water_positions.push(Vector3::new(abs_x, abs_y, WATER_Z));
                 
-                chunk.water_positions[i].x   = chunk.absolutize_x(x_s) as f32;
-                chunk.water_positions[i].y   = chunk.absolutize_y(y_s) as f32;
-                chunk.water_positions[i].z   = 5f32;
+                chunk.terrain_positions.push(Vector3::new(abs_x, abs_y, 0.0));
                 
-                chunk.terrain_positions[i].x = chunk.absolutize_x(x_s) as f32;
-                chunk.terrain_positions[i].y = chunk.absolutize_y(y_s) as f32;
-                chunk.terrain_positions[i].z = 0f32;
-                
-                chunk.terrain_normals[i].x   = 0f32;
-                chunk.terrain_normals[i].y   = 0f32;
-                chunk.terrain_normals[i].z   = 0f32;
-                
-                i += 1;
+                chunk.terrain_normals.push(Vector3::new(0.0, 0.0, 0.0));
             }
         }
         
@@ -120,6 +122,10 @@ impl Chunk {
         ((self.x_verts * rel_y) + rel_x) as usize
     }
     
+    pub fn contains_rel(&self, rel_x: i32, rel_y: i32) -> bool {
+        rel_x >= 0 && rel_x < self.x_verts as i32 && rel_y >= 0 && rel_y < self.y_verts as i32
+    }
+    
     pub fn vert_position_at(&self, abs_x: u32, abs_y: u32) -> Option<Vector3<f32>> {
       if (
           abs_x >= self.min_x && abs_x <= (self.min_x + self.x_size) &&
@@ -133,6 +139,18 @@ impl Chunk {
       }
     }
     
+    // Does not recalc the terrain normals or rebuffer to the GPU. So be sure to do those
+    // as necessary after calling this method. */
+    pub fn set_height(&mut self, abs_x: u32, abs_y: u32, abs_z: f32) {
+        let rel_x: u32 = self.relativize_y(abs_x);
+        let rel_y: u32 = self.relativize_y(abs_y);
+        let vert_idx = self.vi(rel_x, rel_y);
+        self.terrain_positions[vert_idx].z = abs_z;
+        let mut depth: f32 = WATER_Z - abs_z;
+        if (depth < 0.0) { depth = 0.0; }
+        self.water_depths[vert_idx] = depth;
+    }
+    
     pub fn buffer_depths(&mut self) {
         unsafe {
           gl::BindBuffer(gl::ARRAY_BUFFER, self.water_depth_buffer);
@@ -144,6 +162,7 @@ impl Chunk {
           );
           gl::BindBuffer(gl::ARRAY_BUFFER, 0);
         }
+        self.depths_buffered = true;
     }
     
     pub fn buffer_normals(&mut self) {
@@ -157,6 +176,7 @@ impl Chunk {
             );
             gl::BindBuffer(gl::ARRAY_BUFFER, 0);
         }
+        self.normals_buffered = true;
     }
     
     /* The vertex attributes are interleaved, position followed by normal. */
@@ -179,27 +199,25 @@ impl Chunk {
             );
             gl::BindBuffer(gl::ARRAY_BUFFER, 0);
         }
+        self.positions_buffered = true;
     }
     
     pub fn buffer_indices(&mut self) {
         let size: usize = ((self.y_verts - 1) * (self.x_verts - 1) * 6) as usize;
         let mut indices: Vec<GLushort> = Vec::with_capacity(size);
-        let mut i: usize = 0;
         for y in 0u32..(self.y_verts - 1) {
             for x in 0u32..(self.x_verts - 1) {
                 // Buffer the quad having a min (NW) vertex at (x, y).
                 
                 // NW triangle.
-                indices[i + 0] = (( y      * self.x_verts) + x    ) as GLushort; // NW.
-                indices[i + 1] = (( y      * self.x_verts) + x + 1) as GLushort; // NE.
-                indices[i + 2] = (((y + 1) * self.x_verts) + x    ) as GLushort;  // SW.
+                indices.push((( y      * self.x_verts) + x    ) as GLushort); // NW.
+                indices.push((( y      * self.x_verts) + x + 1) as GLushort); // NE.
+                indices.push((((y + 1) * self.x_verts) + x    ) as GLushort);  // SW.
       
                 // SE triangle.
-                indices[i + 3] = (((y + 1) * self.x_verts) + x + 1) as GLushort; // SE.
-                indices[i + 4] = (((y + 1) * self.x_verts) + x    ) as GLushort; // SW.
-                indices[i + 5] = (( y      * self.x_verts) + x + 1) as GLushort; // NE.
-      
-                i += 6;
+                indices.push((((y + 1) * self.x_verts) + x + 1) as GLushort); // SE.
+                indices.push((((y + 1) * self.x_verts) + x    ) as GLushort); // SW.
+                indices.push((( y      * self.x_verts) + x + 1) as GLushort); // NE.
             }
         }
         unsafe {
@@ -212,6 +230,7 @@ impl Chunk {
           );
           gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
         }
+        self.indices_buffered = true;
     }
     
     /* Calculates the normal for each vertex. The vertex normal is defined as the average
@@ -264,26 +283,39 @@ impl Chunk {
     fn maybe_add_tri_normal(
         &self, world: &World, sum_norm: &mut Vector3<f32>, root: &Vector3<f32>,
         leg_1_rel_x: i32, leg_1_rel_y: i32, leg_2_rel_x: i32, leg_2_rel_y: i32
-    ) {        
+    ) {
+        let leg_1_abs_x = self.absolutize_x(leg_1_rel_x) as i32;
+        let leg_1_abs_y = self.absolutize_y(leg_1_rel_y) as i32;
+        let leg_2_abs_x = self.absolutize_x(leg_2_rel_x) as i32;
+        let leg_2_abs_y = self.absolutize_y(leg_2_rel_y) as i32;
         // Find the vertex position of each of the legs. If the proposed leg falls outside
         // the world's boundaries, the return value is None.
-        let leg1_opt: Option<Vector3<f32>> = world.vert_position_at(
-            self.absolutize_x(leg_1_rel_x) as i32,
-            self.absolutize_y(leg_1_rel_y) as i32
-        );
-        let leg2_opt: Option<Vector3<f32>> = world.vert_position_at(
-            self.absolutize_x(leg_2_rel_x) as i32,
-            self.absolutize_y(leg_2_rel_y) as i32
-        );
+        // 
+        // If this chunk contains the vertex, we can't go through the world. This chunk
+        // has already been borrowed mutably, so the world can't access it right now.
+        let leg_1_opt: Option<Vector3<f32>>;
+        let leg_2_opt: Option<Vector3<f32>>;
         
-        match (leg1_opt, leg2_opt) {  
-            (Some(leg1), Some(leg2)) => {
-                let leg1: Vector3<f32> = leg1_opt.unwrap();
-                let leg2: Vector3<f32> = leg2_opt.unwrap();
+        if self.contains_rel(leg_1_rel_x, leg_1_rel_y) {
+          leg_1_opt = self.vert_position_at(leg_1_abs_x as u32, leg_1_abs_y as u32);
+        } else {
+          leg_1_opt = world.vert_position_at(leg_1_abs_x, leg_1_abs_y);
+        }
+        
+        if self.contains_rel(leg_2_rel_x, leg_2_rel_y) {
+          leg_2_opt = self.vert_position_at(leg_2_abs_x as u32, leg_2_abs_y as u32);
+        } else {
+          leg_2_opt = world.vert_position_at(leg_2_abs_x, leg_2_abs_y);
+        }
+        
+        match (leg_1_opt, leg_2_opt) {  
+            (Some(leg_1), Some(leg_2)) => {
+                let leg_1: Vector3<f32> = leg_1_opt.unwrap();
+                let leg_2: Vector3<f32> = leg_2_opt.unwrap();
             
                 // The direction vectors of each leg of this triangle.
-                let leg_dir_1: Vector3<f32> = leg1.sub_v(root);
-                let leg_dir_2: Vector3<f32> = leg2.sub_v(root);
+                let leg_dir_1: Vector3<f32> = leg_1.sub_v(root);
+                let leg_dir_2: Vector3<f32> = leg_2.sub_v(root);
             
                 // The normal of this triangle is the cross product of the two leg directions.
                 let mut tri_norm: Vector3<f32> = leg_dir_1.cross(&leg_dir_2).normalize();
@@ -298,7 +330,7 @@ impl Chunk {
         }
     }
     
-    fn configure_vaos(&mut self, terrain_program: &TerrainProgram, water_program: &WaterProgram) {
+    fn configure_vaos(&mut self, terrain_program: &terrain::Program, water_program: &water::Program) {
         unsafe {
             // Terrain.
             gl::BindVertexArray(self.terrain_vao);
@@ -330,7 +362,10 @@ impl Chunk {
         }
     }
     
-    pub fn draw_terrain(&self, camera: &Camera, terrain_program: &TerrainProgram) {
+    pub fn draw_terrain(&self, camera: &Camera, terrain_program: &terrain::Program) {
+        if !self.positions_buffered { panic!("Called draw_terrain before buffering positions"); }
+        if !self.normals_buffered   { panic!("Called draw_terrain before buffering normals"); }
+        if !self.indices_buffered   { panic!("Called draw_terrain before buffering indices"); }
         unsafe {
             gl::BindVertexArray(self.terrain_vao);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.index_buffer);
@@ -346,7 +381,10 @@ impl Chunk {
         }
     }
 
-    pub fn draw_water(&self, camera: &Camera, water_program: &WaterProgram) {
+    pub fn draw_water(&self, camera: &Camera, water_program: &water::Program) {
+        if !self.positions_buffered { panic!("Called draw_terrain before buffering positions"); }
+        if !self.depths_buffered    { panic!("Called draw_terrain before buffering depths"); }
+        if !self.indices_buffered   { panic!("Called draw_terrain before buffering indices"); }
         unsafe {
             gl::BindVertexArray(self.water_vao);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.index_buffer);

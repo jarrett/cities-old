@@ -27,11 +27,11 @@ impl AxisIndicator {
         
         ai.program = glutil::make_program(&Path::new("glsl/axis-indicator.vert.glsl"), &Path::new("glsl/axis-indicator.frag.glsl"));
         
-        let position_idx: GLint = glutil::get_attrib_location( ai.program, "position");
-        let color_idx:    GLint = glutil::get_attrib_location( ai.program, "color");
-        ai.model_idx            = glutil::get_uniform_location(ai.program, "model");
-        ai.projection_idx       = glutil::get_uniform_location(ai.program, "projection");
-        ai.scale_idx            = glutil::get_uniform_location(ai.program, "scale");
+        let position_idx  = glutil::get_attrib_location( ai.program, "position");
+        let color_idx     = glutil::get_attrib_location( ai.program, "color");
+        ai.model_idx      = glutil::get_uniform_location(ai.program, "model");
+        ai.projection_idx = glutil::get_uniform_location(ai.program, "projection");
+        ai.scale_idx      = glutil::get_uniform_location(ai.program, "scale");
         
         let attrs: [GLfloat; 36] = [
           // X
@@ -68,7 +68,7 @@ impl AxisIndicator {
               indices.as_ptr() as *const c_void,
               gl::STATIC_DRAW
             );
-            gl::EnableVertexAttribArray(position_idx as GLuint);
+            gl::EnableVertexAttribArray(position_idx);
             gl::VertexAttribPointer(
               position_idx as GLuint,
               3,
@@ -77,7 +77,7 @@ impl AxisIndicator {
               (mem::size_of::<GLfloat>() * 6) as GLint,
               ptr::null::<c_void>() as *const c_void,
             );
-            gl::EnableVertexAttribArray(color_idx as GLuint);
+            gl::EnableVertexAttribArray(color_idx);
             gl::VertexAttribPointer(
               color_idx as GLuint,
               3,

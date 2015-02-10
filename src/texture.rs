@@ -20,7 +20,7 @@ pub struct Texture {
 }
 
 impl Texture {
-    pub fn new(path: &Path, config: TextureConfig) -> Texture {
+    pub fn new(path: &Path, config: &TextureConfig) -> Texture {
         let mut tex = Texture {id: 0, width: 0, height: 0};
         unsafe {
             gl::GenTextures(1, &mut tex.id);
