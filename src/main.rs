@@ -64,6 +64,9 @@ fn main() {
         16, 16
     );
     
+    let mut q_down = false;
+    let mut e_down = false;
+    
     while !window.should_close() {
         let (width, height) = window.get_size();
         camera.resize(width as u16, height as u16);
@@ -82,10 +85,21 @@ fn main() {
         
         // Orbit camera with Q and E.
         if window.get_key(Key::Q) == Action::Press {
-            camera.decrement_orbit();
+            q_down = true;
+        } else {
+            if q_down {
+                camera.decrement_orbit();
+                q_down = false;
+            }
         }
         if window.get_key(Key::E) == Action::Press {
-            camera.increment_orbit();
+            e_down = true;
+            
+        } else {
+            if e_down {
+                camera.increment_orbit();
+                e_down = false;
+            }
         }
         
         // Pan camera with W and S.
