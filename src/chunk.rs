@@ -140,9 +140,9 @@ impl Chunk {
     
     // Does not recalc the terrain normals or rebuffer to the GPU. So be sure to do those
     // as necessary after calling this method. */
-    pub fn set_height(&mut self, abs_x: u32, abs_y: u32, abs_z: f32) {
-        let rel_x: u32 = self.relativize_y(abs_x);
-        let rel_y: u32 = self.relativize_y(abs_y);
+    pub fn set_height(&mut self, rel_x: u32, rel_y: u32, abs_z: f32) {
+        if rel_x >= self.x_verts { panic!("rel_x ({}) greater than x_verts ({})", rel_x, self.x_verts); }
+        if rel_y >= self.x_verts { panic!("rel_y ({}) greater than x_verts ({})", rel_x, self.x_verts); }
         let vert_idx = self.vi(rel_x, rel_y);
         self.terrain_positions[vert_idx].z = abs_z;
         let mut depth: f32 = WATER_Z - abs_z;

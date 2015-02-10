@@ -59,7 +59,7 @@ fn main() {
     let terrain_program = terrain::Program::new();
     let water_program = water::Program::new();
     let world = World::new(
-        terrain::source::ImageSource::new(&Path::new("assets/height/river-128x128.png"), 5.0),
+        terrain::source::ImageSource::new(&Path::new("assets/height/river-128x128.png"), 0.1),
         &terrain_program, &water_program,
         16, 16
     );

@@ -70,11 +70,12 @@ impl World {
                 // Drill down deeper: Go through the full X/Y range of each chunk and set the height
                 // for each vertex.
                 for rel_y in 0u32..chunk_y_verts {
-                    for rel_x in 032..chunk_x_verts {
+                    for rel_x in 0u32..chunk_x_verts {
                         let x: u32 = min_x + rel_x;
                         let y: u32 = min_y + rel_y;
+                        
                         let height: f32 = terrain_source.vert_z_at(x, y);
-                        chunk.set_height(x, y, height);
+                        chunk.set_height(rel_x, rel_y, height);
                     }
                 }
                 
