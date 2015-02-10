@@ -1,4 +1,7 @@
 #![feature(path)]
+#![feature(std_misc)]
+#![feature(io)]
+#![feature(libc)]
 
 extern crate glfw;
 extern crate gl;
@@ -55,7 +58,7 @@ fn main() {
     
     let terrain_program = terrain::Program::new();
     let water_program = water::Program::new();
-    let mut world = World::new(
+    let world = World::new(
         terrain::source::ImageSource::new(&Path::new("assets/height/river-128x128.png"), 5.0),
         &terrain_program, &water_program,
         16, 16

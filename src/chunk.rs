@@ -127,10 +127,9 @@ impl Chunk {
     }
     
     pub fn vert_position_at(&self, abs_x: u32, abs_y: u32) -> Option<Vector3<f32>> {
-      if (
-          abs_x >= self.min_x && abs_x <= (self.min_x + self.x_size) &&
-          abs_y >= self.min_y && abs_y <= (self.min_y + self.y_size)
-      ) {
+      if abs_x >= self.min_x && abs_x <= (self.min_x + self.x_size) &&
+         abs_y >= self.min_y && abs_y <= (self.min_y + self.y_size)
+      {
           return Some(self.terrain_positions[
             self.vi(self.relativize_x(abs_x), self.relativize_y(abs_y))
           ]);
@@ -147,7 +146,7 @@ impl Chunk {
         let vert_idx = self.vi(rel_x, rel_y);
         self.terrain_positions[vert_idx].z = abs_z;
         let mut depth: f32 = WATER_Z - abs_z;
-        if (depth < 0.0) { depth = 0.0; }
+        if depth < 0.0 { depth = 0.0; }
         self.water_depths[vert_idx] = depth;
     }
     
@@ -309,10 +308,7 @@ impl Chunk {
         }
         
         match (leg_1_opt, leg_2_opt) {  
-            (Some(leg_1), Some(leg_2)) => {
-                let leg_1: Vector3<f32> = leg_1_opt.unwrap();
-                let leg_2: Vector3<f32> = leg_2_opt.unwrap();
-            
+            (Some(leg_1), Some(leg_2)) => {            
                 // The direction vectors of each leg of this triangle.
                 let leg_dir_1: Vector3<f32> = leg_1.sub_v(root);
                 let leg_dir_2: Vector3<f32> = leg_2.sub_v(root);

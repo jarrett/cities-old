@@ -41,17 +41,17 @@ impl World {
           chunks:        Vec::with_capacity(((terrain_source.y_verts() - 1) / chunk_y_verts) as usize)
         };
         
-        if (world.x_verts % chunk_x_verts != 0) {
+        if world.x_verts % chunk_x_verts != 0 {
           panic!("x_verts ({}) is not a multiple of chunk_x_verts ({})", world.x_verts, chunk_x_verts);
         }
-        if (world.y_verts % chunk_y_verts != 0) {
+        if world.y_verts % chunk_y_verts != 0 {
           panic!("y_verts ({}) is not a multiple of chunk_y_verts ({})", world.y_verts, chunk_y_verts);
         }
   
         world.x_chunks = world.x_size / chunk_x_verts;
         world.y_chunks = world.y_size / chunk_y_verts;
         
-        for y in 0u32..world.y_chunks {
+        for _ in 0u32..world.y_chunks {
           let inner_vec = Vec::with_capacity(world.x_chunks as usize);
           world.chunks.push(inner_vec);
         }
@@ -112,7 +112,7 @@ impl World {
         let x_idx: usize = abs_x.div_floor(&self.chunk_x_size) as usize;
         let y_idx: usize = abs_y.div_floor(&self.chunk_y_size) as usize;
         
-        if ((x_idx as u32) < self.x_chunks && (y_idx as u32) < self.y_chunks) {
+        if (x_idx as u32) < self.x_chunks && (y_idx as u32) < self.y_chunks {
             Some(&self.chunks[y_idx][x_idx])
         } else {
             None

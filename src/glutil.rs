@@ -1,6 +1,3 @@
-#![feature(io)]
-#![feature(std_misc)]
-
 use std::old_io::File;
 use std::str;
 use std::ffi::CString;
@@ -27,7 +24,7 @@ pub fn get_uniform_location(program: GLuint, name: &str) -> GLint {
     unsafe {
         let c_str = CString::from_slice(name.as_bytes());
         let loc: GLint = gl::GetUniformLocation(program, c_str.as_ptr());
-        if (loc == -1) {
+        if loc == -1 {
           panic!("Could not find uniform {}", name);
         }
         loc

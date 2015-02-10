@@ -1,4 +1,3 @@
-use std::old_io::File;
 use gl;
 use gl::types::*;
 use image;
