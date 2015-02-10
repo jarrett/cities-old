@@ -66,7 +66,7 @@ impl Chunk {
         // Initialize each vertex to a default value. X and Y positions can be determined
         // with the information we already have. For the water, the Z position is always
         // the same. For the terrain, the Z position defaults to zero. Normals default to
-        // zero.
+        // straight up.
         for y in 0u32..y_verts {
             for x in 0u32..x_verts {
                 // The absolutize functions require signed values.
@@ -80,7 +80,7 @@ impl Chunk {
                 
                 chunk.terrain_positions.push(Vector3::new(abs_x, abs_y, 0.0));
                 
-                chunk.terrain_normals.push(Vector3::new(0.0, 0.0, 0.0));
+                chunk.terrain_normals.push(Vector3::new(0.0, 0.0, 1.0));
             }
         }
         
@@ -169,7 +169,7 @@ impl Chunk {
             gl::BindBuffer(gl::ARRAY_BUFFER, self.terrain_normal_buffer);
             gl::BufferData(
                 gl::ARRAY_BUFFER,
-                (mem::size_of::<f32>() as u32 * self.x_verts * self.y_verts) as i64,
+                (mem::size_of::<f32>() as u32 * 3 * self.x_verts * self.y_verts) as i64,
                 self.terrain_normals.as_ptr() as *const c_void,
                 gl::DYNAMIC_DRAW
             );

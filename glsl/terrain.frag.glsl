@@ -126,7 +126,4 @@ void main() {
   }
   
   outColor = vec4(ambientDiffuse() * texColor, 1.0);
-  
-  // Uncomment to debug normal:
-  // outColor = vec4((vNormal + vec3(1.0, 1.0, 1.0)) / 2, 1.0);
 }

@@ -100,7 +100,7 @@ pub fn make_shader(path: &Path, shader_type: GLenum) -> GLuint {
             ptr::null::<GLint>() as *mut GLint,
             c_str.as_bytes().as_ptr() as *mut libc::c_char
           );
-          panic!("GLSL shader failed to compile:\n\n{}", str::from_utf8(c_str.as_bytes()).unwrap());
+          panic!("GLSL shader {} failed to compile:\n\n{}", path.display(), str::from_utf8(c_str.as_bytes()).unwrap());
         }
     
         shader
