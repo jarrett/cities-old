@@ -7,13 +7,13 @@ same code, so we treat them all as Things and write generic Thing-handling code.
 Not everything is a Thing. Most notably, overlay textures are not Things in themselves.
 However, a Thing *can* (and often does) include overlay textures.
 
-If each instance of a particular kind of building, tree, etc, is a Thing, then
-what do we call a single class of building, tree, etc? In other words, what do we call the
-Platonic form of, say, Birch Tree Variant 6? We call it a MetaThing. We could have called
-it a ThingClass or ThingType, but that would misleadingly conflate our concept of a
-Platonic Thing with programming languages' type systems. To be clear, they *are*
-different. We *don't* define a C++ class, a Haskell type, or what have you for each
-MetaThing. MetaThings are just packets of configuration data.
+If each instance of a particular kind of building, tree, etc, is a Thing, then what do we
+call a single class of building, tree, etc? In other words, what do we call the Platonic
+form of, say, Birch Tree Variant 6? We call it a MetaThing. We could have called it a
+ThingClass or ThingType, but that would misleadingly conflate our concept of a Platonic
+Thing with programming languages' type systems. To be clear, they *are* different. We
+*don't* define a Rust struct or what have you for each MetaThing. MetaThings are just
+packets of configuration data.
 
 ## Vertical Positioning
 
@@ -111,9 +111,13 @@ than the total bounding box. So it can have multiple billboards.
   
   * 2 byte unsigned int: File format version.
   
-  * 2 byte unsigned int: Size of name in bytes.
+  * 2 byte unsigned int: Size of author name in bytes.
   
-  * String (no null terminator): Name. Can be any length up to 65535. ASCII encoded.
+  * String (no null terminator): Author name. Can be any length up to 65535. ASCII encoded.
+  
+  * 2 byte unsigned int: Size of thing name in bytes.
+  
+  * String (no null terminator): Thing name. Can be any length up to 65535. ASCII encoded.
   
   * 1 byte unsigned int: Size of each configuration key in bytes. Currently, this must be
     1. Meaning we allow for up to 256 possible keys.
@@ -125,10 +129,13 @@ than the total bounding box. So it can have multiple billboards.
   * 2 byte unsigned int: Number of models.
   
   * Models, where each Model consists of:
+    * 2 byte unsigned int: Size of author name in bytes.
     
-    * 2 byte unsigned int: Size of Model name in bytes.
+    * String (no null terminator): Author name. Can be any length up to 65535. ASCII encoded.
     
-    * String (no null terminator): Name. Can be any length up to 65535. ASCII encoded.
+    * 2 byte unsigned int: Size of model name in bytes.
+    
+    * String (no null terminator): Model name. Can be any length up to 65535. ASCII encoded.
     
     * 1 byte unsigned int: Direction model is facing.
     

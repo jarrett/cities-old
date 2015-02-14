@@ -10,7 +10,9 @@ extern crate image;
 extern crate libc;
 extern crate num;
 
+mod assertions;
 mod glutil;
+mod futil;
 mod camera;
 mod axis_indicator;
 mod texture;
@@ -18,6 +20,9 @@ mod world;
 mod terrain;
 mod chunk;
 mod water;
+mod thing;
+mod meta_thing;
+mod meta_model;
 
 use cgmath::*;
 use glfw::{Context, Action, Key};

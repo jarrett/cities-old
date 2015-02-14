@@ -37,7 +37,7 @@ pub struct Chunk {
     positions_buffered:       bool,
     normals_buffered:         bool,
     indices_buffered:         bool,
-    depths_buffered:           bool
+    depths_buffered:          bool
 }
 
 impl Chunk {

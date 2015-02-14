@@ -36,9 +36,13 @@ numbers, and `-`. The encoding is always ASCII.
     the direction (orientation) of the sprite. Must be 0x00 for now, because embedded
     images are not currently implemented.
   
-  * 2 byte unsigned int: Size of name in bytes.
+  * 2 byte unsigned int: Size of author name in bytes.
   
-  * String (no null terminator): Name. Can be any length up to 65535. ASCII encoded.
+  * String (no null terminator): Author name. Can be any length up to 65535. ASCII encoded.
+  
+  * 2 byte unsigned int: Size of model name in bytes.
+  
+  * String (no null terminator): Model name. Can be any length up to 65535. ASCII encoded.
 
 * If 3d:
   
