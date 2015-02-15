@@ -45,9 +45,9 @@ impl MetaThing {
             }
             let meta_model = meta_model.unwrap().clone();
             let direction = file.read_u8().unwrap();
-            let origin = read_vector_3(&mut file); // Model's origin relative to the thing's origin.
+            let offset = read_vector_3(&mut file); // Model's origin relative to the thing's origin.
             models.push(ModelInclusion {
-                meta_model: meta_model, direction: direction, origin: origin
+                meta_model: meta_model, direction: direction, offset: offset
             });
         }
                
@@ -79,12 +79,14 @@ impl MetaThing {
     pub fn author_name(&self) -> &String { &self.author_name }
     
     pub fn thing_name(&self) -> &String { &self.thing_name }
+    
+    pub fn models(&self) -> &Vec<ModelInclusion> { &self.models }
 }
 
 struct ModelInclusion {
-    meta_model: Rc<MetaModel>,
-    direction: u8,
-    origin: Vector3<f32>
+    pub meta_model: Rc<MetaModel>,
+    pub direction: u8,
+    pub offset: Vector3<f32>
 }
 
 #[cfg(test)]

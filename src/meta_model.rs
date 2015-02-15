@@ -1,11 +1,17 @@
 use std::old_io::File;
 use std::old_io::fs;
+use std::mem;
+use libc::{c_void};
 use std::rc::Rc;
 use std::collections::HashMap;
 use std::default::Default;
 use cgmath::*;
+use gl;
+use gl::types::*;
+
 use futil::*;
 use model;
+use camera::Camera;
 
 pub type MetaModelsMap = HashMap<String, Rc<MetaModel>>;
 
@@ -17,7 +23,7 @@ pub struct MetaModel {
     y_size: f32,
     z_size: f32,
     uvs: Vec<UvsForDirection>,
-    vbo_offset: u16
+    index_offset: u16 // Offset into the index VBO.
 }
 
 impl MetaModel {
@@ -44,7 +50,7 @@ impl MetaModel {
         
         MetaModel {
           author_name: author_name, model_name: model_name, shape: shape,
-          x_size: x_size, y_size: y_size, z_size: z_size, uvs: uvs, vbo_offset: 0
+          x_size: x_size, y_size: y_size, z_size: z_size, uvs: uvs, index_offset: 0
         }
     }
     
@@ -78,44 +84,66 @@ impl MetaModel {
         let bf_pos = Vector3::new(self.x_size / -2.0, self.y_size /  2.0, 0.0);
         let br_pos = Vector3::new(self.x_size /  2.0, self.y_size /  2.0, 0.0);
         
-        self.vbo_offset = buffers.positions.len() as u16;
+        self.index_offset = buffers.indices.len() as u16;
         
         // For each direction.
         for duvs in self.uvs.iter() {
+            // Offset into the attributes VBO. We'll use this
+            // when we buffer the indices.
+            let o = buffers.positions.len() as u16; 
+            
             buffers.positions.push_all(&[
-                // Top quad.
+                // Top quad: 0 - 3.
                 tb_pos, tl_pos, tf_pos, tr_pos,
-                // Left quad.
+                // Left quad: 4 - 7.
                 tl_pos, bl_pos, bf_pos, tf_pos,
-                // Right quad.
+                // Right quad: 8 - 11.
                 tf_pos, bf_pos, br_pos, tr_pos
             ]);
         
             buffers.uvs.push_all(&[
-                // Top quad.
+                // Top quad: 0 - 3.
                 duvs.tb, duvs.tl, duvs.tf, duvs.tr,
-                // Left quad.
+                // Left quad: 4 - 7.
                 duvs.tl, duvs.bl, duvs.bf, duvs.tf,
-                // Right quad.
+                // Right quad: 8 - 11.
                 duvs.tf, duvs.bf, duvs.br, duvs.tr
             ]);
-        
-            // Offset into the attribute arrays.
-            let o: u16 = buffers.positions.len() as u16;
-        
+            
             buffers.indices.push_all(&[
                 // Top quad.
-                o +  0, o +  1, o +  2, o +  3,
+                o +  0, o +  1, o +  3,
+                o +  1, o +  2, o +  3,
                 // Left quad.
-                o +  4, o +  5, o +  6, o +  7,
+                o +  4, o +  5, o +  7,
+                o +  5, o +  6, o +  7,
                 // Right quad.
-                o +  8, o +  9, o + 10, o + 11
+                o +  8, o +  9, o + 11,
+                o +  9, o + 10, o + 11
             ]);
         }
     }
     
-    pub fn draw(&self, model_program: &model::Program, abs_position: Vector3<f32>) {
-        
+    pub fn draw(&self, program: &model::Program3d, buffers: &model::Buffers, camera: &Camera, abs_position: &Vector3<f32>, direction: u8) {
+        if !buffers.uploaded { panic!("Called draw before uploading buffers"); }
+        unsafe {
+            gl::BindVertexArray(buffers.vao);
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, buffers.index_buffer);
+            gl::UseProgram(program.id);
+            gl::UniformMatrix4fv(program.model_view_idx, 1, gl::FALSE, mem::transmute(&camera.model_view));
+            gl::UniformMatrix4fv(program.projection_idx, 1, gl::FALSE, mem::transmute(&camera.projection));
+            gl::Uniform3fv(program.origin_idx, 1, mem::transmute(abs_position));
+            gl::Uniform1ui(program.direction_idx, direction as GLuint);
+            //program.bind_textures();
+            // Number of elements to draw = 3 quads * 6 verts per quad.
+            // FIXME: The number of elements to draw and the offset
+            // should be different for 2d models.
+            let offset = self.index_offset + direction as u16 * 18;
+            gl::DrawElements(gl::TRIANGLES, 18, gl::UNSIGNED_SHORT, offset as *const c_void);
+            //gl::BindTexture(gl::TEXTURE_2D, 0);
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
+            gl::BindVertexArray(0);
+        }
     }
 }
 

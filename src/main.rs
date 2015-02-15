@@ -12,6 +12,7 @@ extern crate num;
 
 mod assertions;
 mod glutil;
+mod gldebug;
 mod futil;
 mod camera;
 mod axis_indicator;
@@ -68,7 +69,7 @@ fn main() {
     
     let terrain_program = terrain::Program::new();
     let water_program   = water::Program::new();
-    let model_program   = model::Program::new();
+    let model_program3d   = model::Program3d::new();
     
     let mut model_buffers = model::Buffers::new();
     
@@ -76,6 +77,8 @@ fn main() {
       &Path::new("assets/models"),
       &mut model_buffers
     );
+    
+    model_buffers.upload(&model_program3d);
     
     let meta_things_map = MetaThing::load_dir(
         &meta_models_map,
@@ -90,13 +93,12 @@ fn main() {
     
     // For testing only.
     let meta_thing: &Rc<MetaThing> = meta_things_map.get("jarrett-test").unwrap();
-    let thing = Thing::new(meta_thing, Vector3::new(0.0, 0.0, 0.0));
-    for model in thing.models().iter() {
-        model.draw(&model_program);
-    }
+    let thing = Thing::new(meta_thing, &Vector3::new(10.0, 10.0, 20.0));
     
     let mut q_down = false;
     let mut e_down = false;
+    
+    //gldebug::print_vbo::<u16>(model_buffers.index_buffer, gl::ELEMENT_ARRAY_BUFFER, 3);
     
     while !window.should_close() {
         let (width, height) = window.get_size();
@@ -108,6 +110,11 @@ fn main() {
         
         axis.draw(&camera, 500.0 / camera.zoom);
         world.draw(&camera, &terrain_program, &water_program);
+        
+        // For testing only.
+        for model in thing.models().iter() {
+            model.draw(&model_program3d, &model_buffers, &camera);
+        }
         
         window.swap_buffers();
         

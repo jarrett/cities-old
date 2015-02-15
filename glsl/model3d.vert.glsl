@@ -26,7 +26,8 @@ void main() {
                     0, 0, 0, 1 );
   }
   
-  gl_Position = projection * model * rotateZ * vec4(orign + position, 1.0);
+  //gl_Position = projection * model * rotateZ * vec4(origin + position, 1.0);
+  gl_Position = projection * model * vec4(origin + position, 1.0);
   
   vUV = uv;
 }

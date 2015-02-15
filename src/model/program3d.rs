@@ -3,7 +3,7 @@ use gl::types::*;
 
 use glutil;
 
-pub struct Program {
+pub struct Program3d {
     pub id:             GLuint,
     
     // Uniform locations.
@@ -17,10 +17,10 @@ pub struct Program {
     pub uv_idx:         GLuint
 }
 
-impl Program {
-    pub fn new() -> Program {
-        let id = glutil::make_program(&Path::new("glsl/model.vert.glsl"), &Path::new("glsl/model.frag.glsl"));
-        Program {
+impl Program3d {
+    pub fn new() -> Program3d {
+        let id = glutil::make_program(&Path::new("glsl/model3d.vert.glsl"), &Path::new("glsl/model.frag.glsl"));
+        Program3d {
             id:             id,
             
             model_view_idx: glutil::get_uniform_location(id, "model"),

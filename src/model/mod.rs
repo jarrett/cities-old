@@ -1,21 +1,8 @@
-mod program;
+mod program3d;
 mod buffers;
-
-use std::rc::Rc;
-use cgmath::*;
+mod model;
 
 use meta_model::MetaModel;
-pub use self::program::Program;
+pub use self::model::Model;
+pub use self::program3d::Program3d;
 pub use self::buffers::Buffers;
-
-pub struct Model {
-    abs_position: Vector3<f32>,
-    rel_position: Vector3<f32>,
-    meta_model: Rc<MetaModel>
-}
-
-impl Model {
-    pub fn draw(&self, model_program: &Program) {
-        self.meta_model.draw(model_program, self.abs_position);
-    }
-}

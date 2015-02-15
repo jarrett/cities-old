@@ -5,6 +5,7 @@ use gl;
 use gl::types::*;
 use cgmath::*;
 use model;
+use gldebug;
 
 pub struct Buffers {
     pub positions: Vec<Vector3<f32>>,
@@ -15,7 +16,9 @@ pub struct Buffers {
     pub uv_buffer:       GLuint,
     pub index_buffer:    GLuint,
     
-    pub vao:             GLuint
+    pub vao:             GLuint,
+    
+    pub uploaded:        bool
 }
 
 impl Buffers {
@@ -25,7 +28,7 @@ impl Buffers {
             uvs:       Vec::new(),
             indices:   Vec::new(),
             
-            position_buffer: 0, uv_buffer: 0, index_buffer: 0, vao: 0
+            position_buffer: 0, uv_buffer: 0, index_buffer: 0, vao: 0, uploaded: false
         };
         
         unsafe {
@@ -38,8 +41,10 @@ impl Buffers {
         buffers
     }
     
-    pub fn upload(&self, program: &model::Program) {
+    pub fn upload(&mut self, program: &model::Program3d) {
         unsafe {
+            gl::BindVertexArray(self.vao);
+            
             gl::BindBuffer(gl::ARRAY_BUFFER, self.position_buffer);
             gl::BufferData(
                 gl::ARRAY_BUFFER,
@@ -62,7 +67,7 @@ impl Buffers {
             gl::VertexAttribPointer(program.uv_idx, 2, gl::FLOAT, gl::FALSE, 0, ptr::null());
             gl::BindBuffer(gl::ARRAY_BUFFER, 0);
             
-            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.uv_buffer);
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.index_buffer);
             gl::BufferData(
                 gl::ELEMENT_ARRAY_BUFFER,
                 (mem::size_of::<u16>() * self.indices.len()) as i64,
@@ -70,6 +75,9 @@ impl Buffers {
                 gl::STATIC_DRAW
             );
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
+            
+            gl::BindVertexArray(0);
         }
+        self.uploaded = true;
     }
 }
