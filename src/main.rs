@@ -21,15 +21,20 @@ mod terrain;
 mod chunk;
 mod water;
 mod thing;
+mod model;
 mod meta_thing;
 mod meta_model;
 
+use std::rc::Rc;
 use cgmath::*;
 use glfw::{Context, Action, Key};
 
 use camera::Camera;
 use axis_indicator::AxisIndicator;
 use world::World;
+use meta_model::MetaModel;
+use meta_thing::MetaThing;
+use thing::Thing;
 
 fn main() {
     let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).ok().expect("Failed to init glfw");
@@ -62,12 +67,33 @@ fn main() {
     let mut camera = Camera::new(1280, 960, 10f32);
     
     let terrain_program = terrain::Program::new();
-    let water_program = water::Program::new();
+    let water_program   = water::Program::new();
+    let model_program   = model::Program::new();
+    
+    let mut model_buffers = model::Buffers::new();
+    
+    let meta_models_map = MetaModel::load_dir(
+      &Path::new("assets/models"),
+      &mut model_buffers
+    );
+    
+    let meta_things_map = MetaThing::load_dir(
+        &meta_models_map,
+        &Path::new("assets/things")
+    ).unwrap();
+    
     let world = World::new(
         terrain::source::ImageSource::new(&Path::new("assets/height/river-128x128.png"), 0.1),
         &terrain_program, &water_program,
         16, 16
     );
+    
+    // For testing only.
+    let meta_thing: &Rc<MetaThing> = meta_things_map.get("jarrett-test").unwrap();
+    let thing = Thing::new(meta_thing, Vector3::new(0.0, 0.0, 0.0));
+    for model in thing.models().iter() {
+        model.draw(&model_program);
+    }
     
     let mut q_down = false;
     let mut e_down = false;

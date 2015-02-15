@@ -1,7 +1,13 @@
 use std::old_io::File;
+use std::old_io::fs;
+use std::rc::Rc;
+use std::collections::HashMap;
+use std::default::Default;
 use cgmath::*;
 use futil::*;
-use std::default::Default;
+use model;
+
+pub type MetaModelsMap = HashMap<String, Rc<MetaModel>>;
 
 pub struct MetaModel {
     author_name: String,
@@ -10,7 +16,8 @@ pub struct MetaModel {
     x_size: f32,
     y_size: f32,
     z_size: f32,
-    uvs: Vec<UvsForDirection>
+    uvs: Vec<UvsForDirection>,
+    vbo_offset: u16
 }
 
 impl MetaModel {
@@ -37,35 +44,102 @@ impl MetaModel {
         
         MetaModel {
           author_name: author_name, model_name: model_name, shape: shape,
-          x_size: x_size, y_size: y_size, z_size: z_size, uvs: uvs
+          x_size: x_size, y_size: y_size, z_size: z_size, uvs: uvs, vbo_offset: 0
         }
+    }
+    
+    pub fn load_dir(path: &Path, buffers: &mut model::Buffers) -> MetaModelsMap {
+        let mut map: MetaModelsMap = HashMap::new();
+        for path in fs::walk_dir(path).unwrap() {
+            match path.extension_str() {
+                Some("model") => {
+                    let mut mm = MetaModel::from_file(&path);
+                    mm.buffer(buffers);
+                    let key = format!("{}-{}", mm.author_name(), mm.model_name());
+                    map.insert(key, Rc::new(mm));
+                },
+                _ => {}
+            }
+        }
+        map
     }
     
     pub fn author_name(&self) -> &String { &self.author_name }
     
     pub fn model_name(&self) -> &String { &self.model_name }
+    
+    pub fn buffer(&mut self, buffers: &mut model::Buffers) {
+        // See doc/model-rendering.md for a diagram of these vertices.
+        let tb_pos = Vector3::new(self.x_size /  2.0, self.y_size / -2.0, self.z_size);
+        let tr_pos = Vector3::new(self.x_size /  2.0, self.y_size /  2.0, self.z_size);
+        let tf_pos = Vector3::new(self.x_size / -2.0, self.y_size /  2.0, self.z_size);
+        let tl_pos = Vector3::new(self.x_size / -2.0, self.y_size / -2.0, self.z_size);
+        let bl_pos = Vector3::new(self.x_size / -2.0, self.y_size / -2.0, 0.0);
+        let bf_pos = Vector3::new(self.x_size / -2.0, self.y_size /  2.0, 0.0);
+        let br_pos = Vector3::new(self.x_size /  2.0, self.y_size /  2.0, 0.0);
+        
+        self.vbo_offset = buffers.positions.len() as u16;
+        
+        // For each direction.
+        for duvs in self.uvs.iter() {
+            buffers.positions.push_all(&[
+                // Top quad.
+                tb_pos, tl_pos, tf_pos, tr_pos,
+                // Left quad.
+                tl_pos, bl_pos, bf_pos, tf_pos,
+                // Right quad.
+                tf_pos, bf_pos, br_pos, tr_pos
+            ]);
+        
+            buffers.uvs.push_all(&[
+                // Top quad.
+                duvs.tb, duvs.tl, duvs.tf, duvs.tr,
+                // Left quad.
+                duvs.tl, duvs.bl, duvs.bf, duvs.tf,
+                // Right quad.
+                duvs.tf, duvs.bf, duvs.br, duvs.tr
+            ]);
+        
+            // Offset into the attribute arrays.
+            let o: u16 = buffers.positions.len() as u16;
+        
+            buffers.indices.push_all(&[
+                // Top quad.
+                o +  0, o +  1, o +  2, o +  3,
+                // Left quad.
+                o +  4, o +  5, o +  6, o +  7,
+                // Right quad.
+                o +  8, o +  9, o + 10, o + 11
+            ]);
+        }
+    }
+    
+    pub fn draw(&self, model_program: &model::Program, abs_position: Vector3<f32>) {
+        
+    }
 }
 
 struct UvsForDirection {
-    top_back:     Vector2<f32>,
-    top_right:    Vector2<f32>,
-    top_front:    Vector2<f32>,
-    top_left:     Vector2<f32>,
-    bottom_left:  Vector2<f32>,
-    bottom_front: Vector2<f32>,
-    bottom_right: Vector2<f32>
+    // See doc/model-rendering.md for a diagram of these vertices.
+    tb: Vector2<f32>,
+    tr: Vector2<f32>,
+    tf: Vector2<f32>,
+    tl: Vector2<f32>,
+    bl: Vector2<f32>,
+    bf: Vector2<f32>,
+    br: Vector2<f32>
 }
 
 impl UvsForDirection {
     fn from_file(file: &mut File) -> UvsForDirection {
         UvsForDirection {
-            top_back:     read_vector_2(file),
-            top_right:    read_vector_2(file),
-            top_front:    read_vector_2(file),
-            top_left:     read_vector_2(file),
-            bottom_left:  read_vector_2(file),
-            bottom_front: read_vector_2(file),
-            bottom_right: read_vector_2(file),
+            tb: read_vector_2(file),
+            tr: read_vector_2(file),
+            tf: read_vector_2(file),
+            tl: read_vector_2(file),
+            bl: read_vector_2(file),
+            bf: read_vector_2(file),
+            br: read_vector_2(file),
         }
     }
     
