@@ -5,7 +5,6 @@ use gl;
 use gl::types::*;
 use cgmath::*;
 use model;
-use gldebug;
 
 pub struct Buffers {
     pub positions: Vec<Vector3<f32>>,

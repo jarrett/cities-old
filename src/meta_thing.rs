@@ -95,15 +95,15 @@ mod tests {
     use std::collections::HashMap;
     use super::MetaThing;
     use meta_model::MetaModel;
-    use meta_model::MetaModelMap;
+    use meta_model::MetaModelsMap;
     
     #[test]
     fn from_file() {
         let meta_model = Rc::new(MetaModel::from_file(&Path::new("assets/models/jarrett-test.model")));
-        let mut meta_models_map: MetaModelMap = HashMap::new();
+        let mut meta_models_map: MetaModelsMap = HashMap::new();
         meta_models_map.insert("jarrett-test".to_string(), meta_model);
         let meta_thing: MetaThing = MetaThing::from_file(
-            meta_models_map, &Path::new("assets/things/jarrett-test.thing")
+            &meta_models_map, &Path::new("assets/things/jarrett-test.thing")
         ).unwrap();
         assert_eq!(&"test", &meta_thing.thing_name);
         assert_eq!(&"jarrett", &meta_thing.author_name);

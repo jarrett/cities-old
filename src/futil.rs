@@ -9,6 +9,7 @@ pub fn read_string_16(file: &mut File) -> String {
     ).unwrap()
 }
 
+/*
 pub fn read_string_32(file: &mut File) -> String {
     let length: u32 = file.read_be_u32().unwrap();
     String::from_utf8(
@@ -21,8 +22,7 @@ pub fn read_string_64(file: &mut File) -> String {
     String::from_utf8(
         file.read_exact(length as usize).unwrap()
     ).unwrap()
-}
-
+}*/
 
 pub fn read_vector_2(file: &mut File) -> Vector2<f32> {
     Vector2 {

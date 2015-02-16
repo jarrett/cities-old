@@ -2,6 +2,8 @@
 #![feature(std_misc)]
 #![feature(io)]
 #![feature(libc)]
+#![feature(collections)]
+#![feature(core)]
 
 extern crate glfw;
 extern crate gl;

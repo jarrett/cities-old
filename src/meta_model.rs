@@ -197,11 +197,11 @@ mod tests {
         // coords, so it's not practical to assert all of them here.
         
         // Direction 0, top-back.
-        assert_eq!(0.355713993310928340, meta_model.uvs[0].top_back.x);
-        assert_eq!(0.009803906083106995, meta_model.uvs[0].top_back.y);
+        assert_eq_f32(0.355713993310928340, meta_model.uvs[0].tb.x);
+        assert_eq_f32(0.009803906083106995, meta_model.uvs[0].tb.y);
         
         // Direction 2, bottom-left.
-        assert_eq!(0.009803935885429382, meta_model.uvs[2].bottom_left.x);
-        assert_eq!(0.797001838684082000, meta_model.uvs[2].bottom_left.y);
+        assert_eq_f32(0.009803935885429382, meta_model.uvs[2].bl.x);
+        assert_eq_f32(0.797001838684082000, meta_model.uvs[2].bl.y);
     }
 }

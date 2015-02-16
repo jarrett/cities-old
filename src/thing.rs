@@ -1,5 +1,4 @@
 use std::rc::Rc;
-use std::option::Option;
 
 use cgmath::*;
 use meta_thing::MetaThing;

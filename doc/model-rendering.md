@@ -14,6 +14,9 @@ All meta models are buffered in one go during the game's initialization.
 When a model renders, it delegates to its meta model, passing the model's absolute
 position.
 
+For now, each model and each direction has its own texture. That's inefficient, so in the
+future, we'll stitch the textures together.
+
 A model's vertices are labelled as follows:
 
                       TB (+x, -y, +z)
