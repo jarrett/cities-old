@@ -1,23 +1,36 @@
 use std::option::Option;
 use std::boxed::Box;
-use std::cmp::Ordering::{Less, Equal, Greater};
 
-// Accepts a vector of items with the WidthHeight trait, typically images. Consumes the
-// vector. Returns a new vector with the items wrapped in Packed structs.
-pub fn pack_all<T: WidthHeight>(width: u32, height: u32, mut items_to_pack: Vec<T>) -> Vec<Packed<T>> {
+// Accepts a vector of items with the WidthHeight trait, typically images. Tries to pack
+// as many of the items as will fit. Returns a a new vector with the items wrapped in
+// Packed structs. Those that didn't fit stay in the passed-in vector.
+// 
+// Call sort_for_packing on the vector before you pass it in for the first time.
+pub fn pack_some<T: WidthHeight>(width: u32, height: u32, items_to_pack: &mut Vec<T>) -> Vec<Packed<T>> {
+    let mut tree = Node::new(Rectangle {min_x: 0, min_y: 0, width: width, height: height});
+    let mut items_packed: Vec<Packed<T>> = Vec::new();
+    for item in items_to_pack.drain() {
+        let result: Option<Rectangle> = tree.add(item.width(), item.height());
+        match result {
+            Some(packed_rect) => {
+                items_packed.push(
+                    Packed { inner: item, min_x: packed_rect.min_x, min_y: packed_rect.min_y }
+                );
+            },
+            None => { break; }
+        }
+        
+    }
+    
+    items_packed
+}
+
+pub fn sort_for_packing<T: WidthHeight>(items_to_pack: &mut Vec<T>) {
     // Sort by area, largest first.
     items_to_pack.as_mut_slice().sort_by(|a, b|
         ( a.width() * a.height()).cmp(
         &(b.width() * b.height())).reverse()
     );
-    
-    let mut tree = Node::new(Rectangle {min_x: 0, min_y: 0, width: width, height: height});
-    let items_packed: Vec<Packed<T>> = items_to_pack.drain().map(|item| {
-        let packed_rect: Rectangle = tree.add(item.width(), item.height()).unwrap();
-        Packed { inner: item, min_x: packed_rect.min_x, min_y: packed_rect.min_y }
-    }).collect();
-    
-    items_packed
 }
 
 pub trait WidthHeight {
@@ -33,10 +46,6 @@ pub struct Packed<T: WidthHeight> {
 }
 
 impl <T: WidthHeight> Packed<T> {
-    pub fn new(inner: T) -> Packed<T> {
-        Packed {inner: inner, min_x: 0, min_y: 0}
-    }
-    
     pub fn into_inner(self) -> T { self.inner }
 }
 
@@ -145,14 +154,11 @@ impl Rectangle {
     fn max_y(&self)  -> u32 { self.min_y + self.height - 1 }
     fn width(&self)  -> u32 { self.width }
     fn height(&self) -> u32 { self.height }
-    fn area(&self)   -> u32 { self.width * self.height }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::pack_all;
-    use super::WidthHeight;
-    use super::Packed;
+    use super::{Packed, WidthHeight, pack_some, sort_for_packing};
     
     #[derive(Debug, PartialEq)]
     struct MockImage { w: u32, h: u32 }
@@ -162,17 +168,17 @@ mod tests {
     }
     
     #[test]
-    fn test_pack_all() {
-        let images = vec!(
+    fn test_pack_some() {
+        let mut images = vec!(
             MockImage { w: 20, h: 20 },
             MockImage { w: 50, h: 75 },
             MockImage { w: 40, h: 30 },
             MockImage { w: 50, h: 60 }
         );
         
-        let packed = pack_all(130, 100, images);
+        sort_for_packing(&mut images);
         
-        println!("{:?}", packed);
+        let packed = pack_some(130, 100, &mut images);
         
         assert_eq!(       
             vec!(
@@ -182,6 +188,8 @@ mod tests {
               Packed { inner: MockImage { w: 20, h: 20 }, min_x: 100, min_y:  0 }
             ),
             packed
-        )
+        );
+        
+        assert_eq!(0, images.len());
     }
 }

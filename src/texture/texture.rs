@@ -1,15 +1,25 @@
+use std::default::Default;
 use gl;
 use gl::types::*;
 use image;
 use image::GenericImage;
 use libc::{c_void};
 
-pub struct TextureConfig {
+pub struct Config {
     pub min_filter: GLenum,
     pub mag_filter: GLenum,
     pub wrap_s: GLenum,
     pub wrap_t: GLenum,
     pub max_level: GLint
+}
+
+impl Default for Config {
+    fn default() -> Config {
+        Config {
+            min_filter: gl::LINEAR_MIPMAP_LINEAR, mag_filter: gl::LINEAR,
+            wrap_s: gl::REPEAT, wrap_t: gl::REPEAT, max_level: 4
+        }
+    }
 }
 
 pub struct Texture {    
@@ -19,7 +29,7 @@ pub struct Texture {
 }
 
 impl Texture {
-    pub fn new(path: &Path, config: &TextureConfig) -> Texture {
+    pub fn new(path: &Path, config: &Config) -> Texture {
         let mut tex = Texture {id: 0, width: 0, height: 0};
         unsafe {
             gl::GenTextures(1, &mut tex.id);
@@ -51,13 +61,14 @@ impl Texture {
         
         unsafe {
             gl::TexImage2D(
-                gl::TEXTURE_2D, 0,
-                format as GLint,
-                width as GLint,
-                height as GLint,
-                0,
-                format,
-                gl::UNSIGNED_BYTE,
+                gl::TEXTURE_2D,     // Target
+                0,                  // Mipmap level.
+                format as GLint,    // Internal format, e.g. gl::RGBA.
+                width as GLint,     // Width.
+                height as GLint,    // Height.
+                0,                  // Border.
+                format,             // Input format, e.g. gl::RGBA.
+                gl::UNSIGNED_BYTE,  // Input data type.
                 buffer.as_ptr() as *const c_void
             );
             
@@ -68,11 +79,12 @@ impl Texture {
         
         tex
     }
-    
-    pub fn default_config() -> TextureConfig {
-        TextureConfig {
-            min_filter: gl::LINEAR_MIPMAP_LINEAR, mag_filter: gl::LINEAR,
-            wrap_s: gl::REPEAT, wrap_t: gl::REPEAT, max_level: 4
+}
+
+impl Drop for Texture {
+    fn drop(&mut self) {
+        unsafe {
+            gl::DeleteTextures(1, &mut self.id);
         }
     }
 }

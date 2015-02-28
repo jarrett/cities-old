@@ -5,10 +5,10 @@ use std::old_io::fs;
 use std::result::Result;
 use cgmath::*;
 use futil::*;
-use meta_model::MetaModel;
-use meta_model::MetaModelsMap;
 
-pub type MetaThingsMap = HashMap<String, Rc<MetaThing>>;
+use model::MetaModel;
+use model::MetaModelsMap;
+use super::MetaThingsMap;
 
 pub struct MetaThing {
     author_name: String,

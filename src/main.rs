@@ -25,19 +25,20 @@ mod chunk;
 mod water;
 mod thing;
 mod model;
-mod meta_thing;
-mod meta_model;
 
+use std::default::Default;
 use std::rc::Rc;
+use std::cmp;
 use cgmath::*;
 use glfw::{Context, Action, Key};
+use gl::types::*;
 
 use camera::Camera;
 use axis_indicator::AxisIndicator;
 use world::World;
-use meta_model::MetaModel;
-use meta_thing::MetaThing;
-use thing::Thing;
+use model::MetaModel;
+use thing::{Thing, MetaThing};
+use texture::Spritesheet;
 
 fn main() {
     let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).ok().expect("Failed to init glfw");
@@ -73,18 +74,31 @@ fn main() {
     let water_program   = water::Program::new();
     let model_program3d   = model::Program3d::new();
     
+    let mut max_texture_size: GLint = 0;
+    unsafe {
+        gl::GetIntegerv(gl::MAX_TEXTURE_SIZE, &mut max_texture_size);
+    }
+    let texture_size: u32 = cmp::min(max_texture_size as u32, 2048);
+    println!("Texture size: {}", texture_size);
+    let spritesheet = Spritesheet::load_dir(
+        texture_size, texture_size,
+        &Path::new("assets/sprites"),
+        &Default::default()
+    );
+    
     let mut model_buffers = model::Buffers::new();
     
     let meta_models_map = MetaModel::load_dir(
       &Path::new("assets/models"),
-      &mut model_buffers
+      &mut model_buffers,
+      &spritesheet
     );
     
     model_buffers.upload(&model_program3d);
     
     let meta_things_map = MetaThing::load_dir(
         &meta_models_map,
-        &Path::new("assets/things")
+        &Path::new("assets/things"),
     ).unwrap();
     
     let world = World::new(
@@ -100,7 +114,7 @@ fn main() {
     let mut q_down = false;
     let mut e_down = false;
     
-    //gldebug::print_vbo::<u16>(model_buffers.index_buffer, gl::ELEMENT_ARRAY_BUFFER, 3);
+    gldebug::print_vbo::<f32>(model_buffers.uv_buffer, gl::ARRAY_BUFFER, 3);
     
     while !window.should_close() {
         let (width, height) = window.get_size();

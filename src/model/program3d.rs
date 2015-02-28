@@ -1,3 +1,4 @@
+use gl;
 use gl::types::*;
 
 use glutil;
@@ -8,8 +9,10 @@ pub struct Program3d {
     // Uniform locations.
     pub model_view_idx: GLint,
     pub projection_idx: GLint,
+    pub orbit_idx:      GLint,
     pub direction_idx:  GLint,
     pub origin_idx:     GLint,
+    pub sprite_idx:     GLint,
     
     // Attribute locations.
     pub position_idx:   GLuint,
@@ -24,11 +27,21 @@ impl Program3d {
             
             model_view_idx: glutil::get_uniform_location(id, "model"),
             projection_idx: glutil::get_uniform_location(id, "projection"),
+            orbit_idx:      glutil::get_uniform_location(id, "orbit"),
             direction_idx:  glutil::get_uniform_location(id, "direction"),
             origin_idx:     glutil::get_uniform_location(id, "origin"),
+            sprite_idx:     glutil::get_uniform_location(id, "sprite"),
             
             position_idx:   glutil::get_attrib_location( id, "position"),
             uv_idx:         glutil::get_attrib_location( id, "uv")
+        }
+    }
+    
+    pub fn bind_textures(&self, texture_id: GLuint) {
+        unsafe {
+            gl::ActiveTexture(gl::TEXTURE0);
+            gl::BindTexture(gl::TEXTURE_2D, texture_id);
+            gl::Uniform1i(self.sprite_idx, 0);
         }
     }
 }

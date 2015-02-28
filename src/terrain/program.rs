@@ -1,7 +1,9 @@
+use std::default::Default;
 use gl;
 use gl::types::*;
 
 use glutil;
+use texture;
 use texture::Texture;
 
 pub struct Program {
@@ -29,7 +31,7 @@ pub struct Program {
 impl Program {
     pub fn new() -> Program {
         let id = glutil::make_program(&Path::new("glsl/terrain.vert.glsl"), &Path::new("glsl/terrain.frag.glsl"));
-        let tex_cfg = Texture::default_config();
+        let tex_cfg: texture::Config = Default::default();
         Program {
             id:             id,
             

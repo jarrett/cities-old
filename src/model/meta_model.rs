@@ -4,7 +4,6 @@ use std::mem;
 use libc::{c_void};
 use std::rc::Rc;
 use std::collections::HashMap;
-use std::default::Default;
 use cgmath::*;
 use gl;
 use gl::types::*;
@@ -12,8 +11,9 @@ use gl::types::*;
 use futil::*;
 use model;
 use camera::Camera;
-
-pub type MetaModelsMap = HashMap<String, Rc<MetaModel>>;
+use texture::{Spritesheet, Sprite};
+use super::uvs_for_direction::UvsForDirection;
+use super::{MetaModelsMap, Buffers};
 
 pub struct MetaModel {
     author_name: String,
@@ -23,11 +23,12 @@ pub struct MetaModel {
     y_size: f32,
     z_size: f32,
     uvs: Vec<UvsForDirection>,
+    sprites: Vec<Rc<Sprite>>,
     index_offset: u16 // Offset into the index VBO.
 }
 
 impl MetaModel {
-    pub fn from_file(path: &Path) -> MetaModel {
+    pub fn from_file(path: &Path, spritesheet: &Spritesheet) -> MetaModel {
         let mut file = File::open(path).unwrap();
         
         // Read header.
@@ -44,22 +45,31 @@ impl MetaModel {
         let y_size = file.read_be_f32().unwrap();
         let z_size = file.read_be_f32().unwrap();
         let mut uvs = Vec::with_capacity(8);
-        for _ in 0u8..8u8 {
+        let mut sprites = Vec::with_capacity(8);
+        for direction in 0u8..8u8 {
             uvs.push(UvsForDirection::from_file(&mut file));
+            let sprite_name = format!("{}-{}-{}", author_name, model_name, direction);
+            sprites.push(
+                spritesheet.by_name.get(&sprite_name).expect(format!(
+                    "Texture not found for {}. Known textures: {}",
+                    sprite_name, spritesheet.format_all()
+                ).as_slice()).clone()
+            );
         }
         
         MetaModel {
           author_name: author_name, model_name: model_name, shape: shape,
-          x_size: x_size, y_size: y_size, z_size: z_size, uvs: uvs, index_offset: 0
+          x_size: x_size, y_size: y_size, z_size: z_size, uvs: uvs,
+          sprites: sprites, index_offset: 0
         }
     }
     
-    pub fn load_dir(path: &Path, buffers: &mut model::Buffers) -> MetaModelsMap {
+    pub fn load_dir(path: &Path, buffers: &mut Buffers, spritesheet: &Spritesheet) -> MetaModelsMap {
         let mut map: MetaModelsMap = HashMap::new();
         for path in fs::walk_dir(path).unwrap() {
             match path.extension_str() {
                 Some("model") => {
-                    let mut mm = MetaModel::from_file(&path);
+                    let mut mm = MetaModel::from_file(&path, spritesheet);
                     mm.buffer(buffers);
                     let key = format!("{}-{}", mm.author_name(), mm.model_name());
                     map.insert(key, Rc::new(mm));
@@ -74,7 +84,7 @@ impl MetaModel {
     
     pub fn model_name(&self) -> &String { &self.model_name }
     
-    pub fn buffer(&mut self, buffers: &mut model::Buffers) {
+    pub fn buffer(&mut self, buffers: &mut Buffers) {
         // See doc/model-rendering.md for a diagram of these vertices.
         let tb_pos = Vector3::new(self.x_size /  2.0, self.y_size / -2.0, self.z_size);
         let tr_pos = Vector3::new(self.x_size /  2.0, self.y_size /  2.0, self.z_size);
@@ -87,7 +97,7 @@ impl MetaModel {
         self.index_offset = buffers.indices.len() as u16;
         
         // For each direction.
-        for duvs in self.uvs.iter() {
+        for (direction, duvs) in self.uvs.iter().enumerate() {
             // Offset into the attributes VBO. We'll use this
             // when we buffer the indices.
             let o = buffers.positions.len() as u16; 
@@ -100,14 +110,24 @@ impl MetaModel {
                 // Right quad: 8 - 11.
                 tf_pos, bf_pos, br_pos, tr_pos
             ]);
-        
+            
+            let sprite = &self.sprites[direction];
+            // The offset is in spritesheet space.
+            let so = sprite.offset;
+            let tb = sprite.in_sheet_space(&duvs.tb).add_v(&so);
+            let tl = sprite.in_sheet_space(&duvs.tl).add_v(&so);
+            let tf = sprite.in_sheet_space(&duvs.tf).add_v(&so);
+            let tr = sprite.in_sheet_space(&duvs.tr).add_v(&so);
+            let bl = sprite.in_sheet_space(&duvs.bl).add_v(&so);
+            let bf = sprite.in_sheet_space(&duvs.bf).add_v(&so);
+            let br = sprite.in_sheet_space(&duvs.br).add_v(&so);
             buffers.uvs.push_all(&[
                 // Top quad: 0 - 3.
-                duvs.tb, duvs.tl, duvs.tf, duvs.tr,
+                tb, tl, tf, tr,
                 // Left quad: 4 - 7.
-                duvs.tl, duvs.bl, duvs.bf, duvs.tf,
+                tl, bl, bf, tf,
                 // Right quad: 8 - 11.
-                duvs.tf, duvs.bf, duvs.br, duvs.tr
+                tf, bf, br, tr
             ]);
             
             buffers.indices.push_all(&[
@@ -124,7 +144,11 @@ impl MetaModel {
         }
     }
     
-    pub fn draw(&self, program: &model::Program3d, buffers: &model::Buffers, camera: &Camera, abs_position: &Vector3<f32>, direction: u8) {
+    pub fn draw(
+        &self, program: &model::Program3d, buffers: &Buffers,
+        camera: &Camera, abs_position: &Vector3<f32>,
+        direction: u8
+    ) {
         if !buffers.uploaded { panic!("Called draw before uploading buffers"); }
         unsafe {
             gl::BindVertexArray(buffers.vao);
@@ -134,7 +158,7 @@ impl MetaModel {
             gl::UniformMatrix4fv(program.projection_idx, 1, gl::FALSE, mem::transmute(&camera.projection));
             gl::Uniform3fv(program.origin_idx, 1, mem::transmute(abs_position));
             gl::Uniform1ui(program.direction_idx, direction as GLuint);
-            //program.bind_textures();
+            program.bind_textures(self.sprites[direction as usize].texture_id);
             // Number of elements to draw = 3 quads * 6 verts per quad.
             // FIXME: The number of elements to draw and the offset
             // should be different for 2d models.
@@ -145,33 +169,6 @@ impl MetaModel {
             gl::BindVertexArray(0);
         }
     }
-}
-
-struct UvsForDirection {
-    // See doc/model-rendering.md for a diagram of these vertices.
-    tb: Vector2<f32>,
-    tr: Vector2<f32>,
-    tf: Vector2<f32>,
-    tl: Vector2<f32>,
-    bl: Vector2<f32>,
-    bf: Vector2<f32>,
-    br: Vector2<f32>
-}
-
-impl UvsForDirection {
-    fn from_file(file: &mut File) -> UvsForDirection {
-        UvsForDirection {
-            tb: read_vector_2(file),
-            tr: read_vector_2(file),
-            tf: read_vector_2(file),
-            tl: read_vector_2(file),
-            bl: read_vector_2(file),
-            bf: read_vector_2(file),
-            br: read_vector_2(file),
-        }
-    }
-    
-    
 }
 
 #[cfg(test)]

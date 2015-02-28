@@ -1,3 +1,4 @@
+use std::default::Default;
 use gl;
 use gl::types::*;
 
@@ -33,7 +34,7 @@ impl Program {
             position_idx:   glutil::get_attrib_location( id, "position"),
             depth_idx:      glutil::get_attrib_location( id, "depth"),
             
-            foam_tex:       Texture::new(&Path::new("assets/textures/foam.jpg"), &Texture::default_config())
+            foam_tex:       Texture::new(&Path::new("assets/textures/foam.jpg"), &Default::default())
         }
     }
     

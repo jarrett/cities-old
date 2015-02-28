@@ -1,7 +1,7 @@
 use std::rc::Rc;
-
 use cgmath::*;
-use meta_thing::MetaThing;
+
+use super::MetaThing;
 use model::Model;
 
 pub struct Thing {
