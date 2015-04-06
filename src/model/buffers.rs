@@ -44,6 +44,7 @@ impl Buffers {
         unsafe {
             gl::BindVertexArray(self.vao);
             
+            // Positions.
             gl::BindBuffer(gl::ARRAY_BUFFER, self.position_buffer);
             gl::BufferData(
                 gl::ARRAY_BUFFER,
@@ -55,6 +56,7 @@ impl Buffers {
             gl::VertexAttribPointer(program.position_idx, 3, gl::FLOAT, gl::FALSE, 0, ptr::null());
             gl::BindBuffer(gl::ARRAY_BUFFER, 0);
             
+            // UVs.
             gl::BindBuffer(gl::ARRAY_BUFFER, self.uv_buffer);
             gl::BufferData(
                 gl::ARRAY_BUFFER,
@@ -66,6 +68,7 @@ impl Buffers {
             gl::VertexAttribPointer(program.uv_idx, 2, gl::FLOAT, gl::FALSE, 0, ptr::null());
             gl::BindBuffer(gl::ARRAY_BUFFER, 0);
             
+            // Indices.
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.index_buffer);
             gl::BufferData(
                 gl::ELEMENT_ARRAY_BUFFER,

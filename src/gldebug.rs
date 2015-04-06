@@ -23,12 +23,15 @@ pub fn print_vbo<T: Debug>(id: GLuint, target: GLenum, group: usize) {
         println!("");
         for (i, val) in values.iter().enumerate() {
             if group > 1 && i % group == 0 {
-                print!("(");
+                // Start of group.
+                print!("Group {}: (", i / group);
             }
             print!("{:?}", val);
             if group > 1 && i % group == group - 1 {
-                print!(") ");
+                // End of group.
+                print!(")\n");
             } else if i != values.len() - 1 {
+                // Delimiter between values.
                 print!(", ");
             }
         }

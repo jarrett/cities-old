@@ -41,12 +41,14 @@ use thing::{Thing, MetaThing};
 use texture::Spritesheet;
 
 fn main() {
+    println!("Initing GLFW");
     let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).ok().expect("Failed to init glfw");
     
     glfw.window_hint(glfw::WindowHint::ContextVersion(4, 1));
     glfw.window_hint(glfw::WindowHint::OpenglForwardCompat(true));
     glfw.window_hint(glfw::WindowHint::OpenglProfile(glfw::OpenGlProfileHint::Core));
     
+    println!("Creating window");
     let (mut window, events) = glfw.create_window(
         1280, 960, "Cities", glfw::WindowMode::Windowed
     ).expect("Failed to create GLFW window.");
@@ -70,10 +72,12 @@ fn main() {
     
     let mut camera = Camera::new(1280, 960, 10f32);
     
+    println!("Loading shaders");
     let terrain_program = terrain::Program::new();
     let water_program   = water::Program::new();
     let model_program3d   = model::Program3d::new();
     
+    println!("Creating spritesheets");
     let mut max_texture_size: GLint = 0;
     unsafe {
         gl::GetIntegerv(gl::MAX_TEXTURE_SIZE, &mut max_texture_size);
@@ -86,8 +90,10 @@ fn main() {
         &Default::default()
     );
     
+    println!("Initing model buffers");
     let mut model_buffers = model::Buffers::new();
     
+    println!("Loading meta models");
     let meta_models_map = MetaModel::load_dir(
       &Path::new("assets/models"),
       &mut model_buffers,
@@ -96,11 +102,13 @@ fn main() {
     
     model_buffers.upload(&model_program3d);
     
+    println!("Loading meta things");
     let meta_things_map = MetaThing::load_dir(
         &meta_models_map,
         &Path::new("assets/things"),
     ).unwrap();
     
+    println!("Loading terrain");
     let world = World::new(
         terrain::source::ImageSource::new(&Path::new("assets/height/river-128x128.png"), 0.1),
         &terrain_program, &water_program,
@@ -109,13 +117,20 @@ fn main() {
     
     // For testing only.
     let meta_thing: &Rc<MetaThing> = meta_things_map.get("jarrett-test").unwrap();
-    let thing = Thing::new(meta_thing, &Vector3::new(10.0, 10.0, 20.0));
+    let mut things: Vec<Thing> = Vec::with_capacity(8);
+    for direction in 0u8..8u8 {
+        let thing = Thing::new(meta_thing, &Vector3::new(5.0 + (5 * direction) as f32, 5.0, 45.0), direction);
+        things.push(thing); 
+    }
+    
     
     let mut q_down = false;
     let mut e_down = false;
     
-    gldebug::print_vbo::<f32>(model_buffers.uv_buffer, gl::ARRAY_BUFFER, 3);
+    //gldebug::print_vbo::<f32>(model_buffers.uv_buffer, gl::ARRAY_BUFFER, 2);
+    //gldebug::print_vbo::<u16>(model_buffers.index_buffer, gl::ELEMENT_ARRAY_BUFFER, 18);
     
+    println!("Starting main loop");
     while !window.should_close() {
         let (width, height) = window.get_size();
         camera.resize(width as u16, height as u16);
@@ -128,8 +143,10 @@ fn main() {
         world.draw(&camera, &terrain_program, &water_program);
         
         // For testing only.
-        for model in thing.models().iter() {
-            model.draw(&model_program3d, &model_buffers, &camera);
+        for thing in things.iter() {
+            for model in thing.models().iter() {
+                model.draw(&model_program3d, &model_buffers, &camera);
+            }
         }
         
         window.swap_buffers();

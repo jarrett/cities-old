@@ -12,7 +12,7 @@ pub fn get_attrib_location(program: GLuint, name: &str) -> GLuint {
         let c_str = CString::from_slice(name.as_bytes());
         let loc: GLint = gl::GetAttribLocation(program, c_str.as_ptr());
         if loc == -1 {
-          panic!("Could not find attribute {}", name);
+          panic!("Could not find attribute \"{}\"", name);
         }
         loc as GLuint
     }
@@ -25,7 +25,7 @@ pub fn get_uniform_location(program: GLuint, name: &str) -> GLint {
         let c_str = CString::from_slice(name.as_bytes());
         let loc: GLint = gl::GetUniformLocation(program, c_str.as_ptr());
         if loc == -1 {
-          panic!("Could not find uniform {}", name);
+          panic!("Could not find uniform \"{}\"", name);
         }
         loc
     }

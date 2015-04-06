@@ -6,9 +6,9 @@ use super::{MetaModel, Buffers};
 use super::Program3d;
 
 pub struct Model {
-    abs_position: Vector3<f32>, // World coords.
-    direction: u8,
-    meta_model: Rc<MetaModel>
+    pub abs_position: Vector3<f32>, // World coords.
+    pub direction: u8,
+    pub meta_model: Rc<MetaModel>
 }
 
 impl Model {

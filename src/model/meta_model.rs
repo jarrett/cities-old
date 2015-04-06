@@ -49,12 +49,11 @@ impl MetaModel {
         for direction in 0u8..8u8 {
             uvs.push(UvsForDirection::from_file(&mut file));
             let sprite_name = format!("{}-{}-{}", author_name, model_name, direction);
-            sprites.push(
-                spritesheet.by_name.get(&sprite_name).expect(format!(
-                    "Texture not found for {}. Known textures: {}",
-                    sprite_name, spritesheet.format_all()
-                ).as_slice()).clone()
-            );
+            let sprite = spritesheet.by_name.get(&sprite_name).expect(format!(
+                "Texture not found for {}. Known textures: {}",
+                sprite_name, spritesheet.format_all()
+            ).as_slice()).clone();
+            sprites.push(sprite);
         }
         
         MetaModel {
@@ -86,17 +85,19 @@ impl MetaModel {
     
     pub fn buffer(&mut self, buffers: &mut Buffers) {
         // See doc/model-rendering.md for a diagram of these vertices.
-        let tb_pos = Vector3::new(self.x_size /  2.0, self.y_size / -2.0, self.z_size);
-        let tr_pos = Vector3::new(self.x_size /  2.0, self.y_size /  2.0, self.z_size);
-        let tf_pos = Vector3::new(self.x_size / -2.0, self.y_size /  2.0, self.z_size);
-        let tl_pos = Vector3::new(self.x_size / -2.0, self.y_size / -2.0, self.z_size);
-        let bl_pos = Vector3::new(self.x_size / -2.0, self.y_size / -2.0, 0.0);
-        let bf_pos = Vector3::new(self.x_size / -2.0, self.y_size /  2.0, 0.0);
-        let br_pos = Vector3::new(self.x_size /  2.0, self.y_size /  2.0, 0.0);
+        let tb_pos = Vector3::new(self.x_size / -2.0, self.y_size / -2.0, self.z_size);
+        let tr_pos = Vector3::new(self.x_size /  2.0, self.y_size / -2.0, self.z_size);
+        let tf_pos = Vector3::new(self.x_size /  2.0, self.y_size /  2.0, self.z_size);
+        let tl_pos = Vector3::new(self.x_size / -2.0, self.y_size /  2.0, self.z_size);
+        let bl_pos = Vector3::new(self.x_size / -2.0, self.y_size /  2.0, 0.0);
+        let bf_pos = Vector3::new(self.x_size /  2.0, self.y_size /  2.0, 0.0);
+        let br_pos = Vector3::new(self.x_size /  2.0, self.y_size / -2.0, 0.0);
         
         self.index_offset = buffers.indices.len() as u16;
         
         // For each direction.
+        // Positions and UVs get 96 vectors: 4 verts per quad * 3 quads * 8 directions.
+        // The positions are 3d vectors; the UVs are 2d.
         for (direction, duvs) in self.uvs.iter().enumerate() {
             // Offset into the attributes VBO. We'll use this
             // when we buffer the indices.
@@ -112,15 +113,14 @@ impl MetaModel {
             ]);
             
             let sprite = &self.sprites[direction];
-            // The offset is in spritesheet space.
-            let so = sprite.offset;
-            let tb = sprite.in_sheet_space(&duvs.tb).add_v(&so);
-            let tl = sprite.in_sheet_space(&duvs.tl).add_v(&so);
-            let tf = sprite.in_sheet_space(&duvs.tf).add_v(&so);
-            let tr = sprite.in_sheet_space(&duvs.tr).add_v(&so);
-            let bl = sprite.in_sheet_space(&duvs.bl).add_v(&so);
-            let bf = sprite.in_sheet_space(&duvs.bf).add_v(&so);
-            let br = sprite.in_sheet_space(&duvs.br).add_v(&so);
+            let tb = sprite.in_sheet_space(&duvs.tb);
+            let tl = sprite.in_sheet_space(&duvs.tl);
+            let tf = sprite.in_sheet_space(&duvs.tf);
+            let tr = sprite.in_sheet_space(&duvs.tr);
+            let bl = sprite.in_sheet_space(&duvs.bl);
+            let bf = sprite.in_sheet_space(&duvs.bf);
+            let br = sprite.in_sheet_space(&duvs.br);
+            
             buffers.uvs.push_all(&[
                 // Top quad: 0 - 3.
                 tb, tl, tf, tr,
@@ -150,21 +150,37 @@ impl MetaModel {
         direction: u8
     ) {
         if !buffers.uploaded { panic!("Called draw before uploading buffers"); }
-        unsafe {
+        unsafe {            
             gl::BindVertexArray(buffers.vao);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, buffers.index_buffer);
             gl::UseProgram(program.id);
             gl::UniformMatrix4fv(program.model_view_idx, 1, gl::FALSE, mem::transmute(&camera.model_view));
             gl::UniformMatrix4fv(program.projection_idx, 1, gl::FALSE, mem::transmute(&camera.projection));
             gl::Uniform3fv(program.origin_idx, 1, mem::transmute(abs_position));
-            gl::Uniform1ui(program.direction_idx, direction as GLuint);
+            gl::Uniform1i(program.direction_idx, direction as GLint);
+            gl::Uniform1i(program.orbit_idx, camera.orbit as GLint);
             program.bind_textures(self.sprites[direction as usize].texture_id);
-            // Number of elements to draw = 3 quads * 6 verts per quad.
+            // The offset into the index buffer determines which sprite to draw. Each
+            // sprite has its own set of six triangles.
+            // 
+            // We select the sprite based on the direction the model is facing relative
+            // to the camera. This takes into account both direction and camera.orbit.
+            // 
+            // In the 0th sprite, the front of the model faces down and to the left
+            // in screen space. As the sprite index increases, the model rotates
+            // clockwise. Thus, in the 2nd sprite, the front faces up and to the left.
+            // And so on. Similarly, as the camera orbit increments, the world
+            // rotates clockwise. One camera orbit is 90 degrees, which is worth two
+            // directional steps.
+            //
+            // Number of elements to draw = 3 quads * 6 verts per quad * 2 bytes per vert.
+            // 
             // FIXME: The number of elements to draw and the offset
             // should be different for 2d models.
-            let offset = self.index_offset + direction as u16 * 18;
+            let sprite_num: u16 = (direction + camera.orbit * 2) as u16 % 8;
+            let offset = self.index_offset + sprite_num * 36;
             gl::DrawElements(gl::TRIANGLES, 18, gl::UNSIGNED_SHORT, offset as *const c_void);
-            //gl::BindTexture(gl::TEXTURE_2D, 0);
+            gl::BindTexture(gl::TEXTURE_2D, 0);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
             gl::BindVertexArray(0);
         }

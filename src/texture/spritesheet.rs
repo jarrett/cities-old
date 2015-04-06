@@ -31,7 +31,7 @@ impl Sprite {
     // The sprite sheet and the individual sprite have different UV spaces. This method
     // converts from sprite to sheet space.
     pub fn in_sheet_space(&self, sprite_space: &Vector2<GLfloat>) -> Vector2<GLfloat> {
-        sprite_space.mul_v(&self.uv_scale)
+        sprite_space.mul_v(&self.uv_scale).add_v(&self.offset)
     }
 }
 
@@ -93,7 +93,7 @@ impl Spritesheet {
         let mut packed_images = pack_some(width, width, &mut images_to_pack);
     
         // RGBA requires four bytes per pixel.
-        let mut buffer: Vec<u8> = iter::repeat(128).take((width * height * 4) as usize).collect();
+        let mut buffer: Vec<u8> = iter::repeat(255).take((width * height * 4) as usize).collect();
         
         while !packed_images.is_empty() {
             let packed = packed_images.pop().unwrap();
@@ -152,7 +152,8 @@ impl Spritesheet {
                 gl::UNSIGNED_BYTE,  // Input data type.
                 buffer.as_ptr() as *const c_void
             );
-        
+            
+            gl::GenerateMipmap(gl::TEXTURE_2D);
             gl::BindTexture(gl::TEXTURE_2D, 0);
         }
     }

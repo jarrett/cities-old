@@ -81,9 +81,10 @@ class ModelBuilder:
                                                     dj['br'][0],
                                                     dj['br'][1]))
         else:
-          # Unimplemented diagonals. Zero-fill.
-          for i in range(0, 7 * 2 * 4):
-            model_file.write(pack('!B', 0))
+          raise StandardError('Missing key % in directions hash' % direc)
+          # Zero-fill.
+          #for i in range(0, 7 * 2 * 4):
+          #  model_file.write(pack('!B', 0))
         
     else: # 2d sprite.
       # Geometry section size. Sum of: its own size, dimensions wh,

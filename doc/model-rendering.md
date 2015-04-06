@@ -19,23 +19,23 @@ future, we'll stitch the textures together.
 
 A model's vertices are labelled as follows:
 
-                      TB (+x, -y, +z)
+                      TB (-x, -y, +z)
                      /   \
                    /       \
-     (-x, -y, +z) TL        TR (+x, +y, +z)
+     (-x, +y, +z) TL        TR (+x, -y, +z)
                   |\       /|
                   |  \   /  |
                   |   TF    |
-     (-x, -y, -z) BL   |   BR (+x, +y, -z)
+     (-x, +y, -z) BL   |    BR (+x, -y, -z)
                    \   |   /
                      \ | /
-                      BF (-x, +y, -z)
+                      BF (+x, +y, -z)
     
-     +Z axis 
-       |
-       |  +X axis
-       |  /
-       |/
-        \
-          \
-          +Y axis
+
+           +Z axis 
+              |
+              |
+              |
+             / \
+           /     \
+    +Y axis      +X axis
