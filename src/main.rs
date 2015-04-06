@@ -37,7 +37,7 @@ use camera::Camera;
 use axis_indicator::AxisIndicator;
 use world::World;
 use model::MetaModel;
-use thing::{Thing, MetaThing};
+use thing::{Thing, MetaThing, ZSorted};
 use texture::Spritesheet;
 
 fn main() {
@@ -117,12 +117,15 @@ fn main() {
     
     // For testing only.
     let meta_thing: &Rc<MetaThing> = meta_things_map.get("jarrett-test").unwrap();
-    let mut things: Vec<Thing> = Vec::with_capacity(8);
+    let mut things: Vec<Rc<Thing>> = Vec::with_capacity(8);
     for direction in 0u8..8u8 {
-        let thing = Thing::new(meta_thing, &Vector3::new(5.0 + (5 * direction) as f32, 5.0, 45.0), direction);
-        things.push(thing); 
+        let thing = Rc::new(
+          Thing::new(meta_thing, &Vector3::new(5.0 + 3.0 * direction as f32, 5.0, 45.0), direction)
+        );
+        things.push(thing);
     }
     
+    let z_sorted = ZSorted::new(&things, &mut camera);
     
     let mut q_down = false;
     let mut e_down = false;
@@ -143,10 +146,8 @@ fn main() {
         world.draw(&camera, &terrain_program, &water_program);
         
         // For testing only.
-        for thing in things.iter() {
-            for model in thing.models().iter() {
-                model.draw(&model_program3d, &model_buffers, &camera);
-            }
+        for thing in z_sorted.get(&camera).iter() {
+            thing.draw(&model_program3d, &model_buffers, &camera);
         }
         
         window.swap_buffers();

@@ -18,6 +18,7 @@ use super::{MetaModelsMap, Buffers};
 pub struct MetaModel {
     author_name: String,
     model_name: String,
+    #[allow(dead_code)]
     shape: u8,
     x_size: f32,
     y_size: f32,

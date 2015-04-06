@@ -39,6 +39,9 @@ impl Camera {
         }
     }
     
+    pub fn distance_to(&self, point: &Vector3<f32>) -> f32 {
+        self.projection.mul_m(&self.model_view).mul_v(&point.extend(1.0)).z
+    }
     
     pub fn increment_orbit(&mut self) {
         if self.orbit == 3 {

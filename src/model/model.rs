@@ -2,8 +2,7 @@ use std::rc::Rc;
 use cgmath::*;
 
 use camera::Camera;
-use super::{MetaModel, Buffers};
-use super::Program3d;
+use super::{MetaModel, Buffers, Program3d};
 
 pub struct Model {
     pub abs_position: Vector3<f32>, // World coords.
