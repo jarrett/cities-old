@@ -8,7 +8,7 @@ use cgmath::*;
 use gl;
 use gl::types::*;
 
-use futil::*;
+use futil::read_string_16;
 use model;
 use camera::Camera;
 use texture::{Spritesheet, Sprite};
@@ -37,8 +37,8 @@ impl MetaModel {
         file.read_be_u16().unwrap(); // Version.
         let shape = file.read_u8().unwrap();
         file.read_u8().unwrap(); // Image embedded.
-        let author_name = read_string_16(&mut file);
-        let model_name = read_string_16(&mut file);
+        let author_name = read_string_16(&mut file).unwrap();
+        let model_name = read_string_16(&mut file).unwrap();
         
         // Read geometry.
         file.read_be_u16().unwrap(); // Geometry section size.

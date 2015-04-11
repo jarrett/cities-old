@@ -17,13 +17,13 @@ pub struct UvsForDirection {
 impl UvsForDirection {
     pub fn from_file(file: &mut File) -> UvsForDirection {
         UvsForDirection {
-            tb: read_vector_2(file),
-            tr: read_vector_2(file),
-            tf: read_vector_2(file),
-            tl: read_vector_2(file),
-            bl: read_vector_2(file),
-            bf: read_vector_2(file),
-            br: read_vector_2(file),
+            tb: read_vector_2(file).unwrap(),
+            tr: read_vector_2(file).unwrap(),
+            tf: read_vector_2(file).unwrap(),
+            tl: read_vector_2(file).unwrap(),
+            bl: read_vector_2(file).unwrap(),
+            bf: read_vector_2(file).unwrap(),
+            br: read_vector_2(file).unwrap(),
         }
     }
 }

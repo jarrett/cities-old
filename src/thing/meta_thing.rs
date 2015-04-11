@@ -4,7 +4,7 @@ use std::old_io::File;
 use std::old_io::fs;
 use std::result::Result;
 use cgmath::*;
-use futil::*;
+use futil::{read_string_16, read_vector_3};
 
 use model::MetaModel;
 use model::MetaModelsMap;
@@ -23,8 +23,8 @@ impl MetaThing {
         // Read header.
         file.read_be_u16().unwrap(); // Header size.
         file.read_be_u16().unwrap(); // Version.
-        let author_name = read_string_16(&mut file);
-        let thing_name = read_string_16(&mut file);
+        let author_name = read_string_16(&mut file).unwrap();
+        let thing_name = read_string_16(&mut file).unwrap();
         file.read_u8().unwrap(); // Config key size.
         
         // Read models.
@@ -32,8 +32,8 @@ impl MetaThing {
         let model_count = file.read_be_u16().unwrap();
         let mut models: Vec<ModelInclusion> = Vec::with_capacity(model_count as usize);
         for _ in 0u16..model_count {
-            let author_name = read_string_16(&mut file);
-            let model_name = read_string_16(&mut file);
+            let author_name = read_string_16(&mut file).unwrap();
+            let model_name = read_string_16(&mut file).unwrap();
             let key: String = format!("{}-{}", author_name, model_name);
             let meta_model: Option<&Rc<MetaModel>> = meta_models_map.get(key.as_slice());
             if meta_model.is_none() {
@@ -45,7 +45,7 @@ impl MetaThing {
             }
             let meta_model = meta_model.unwrap().clone();
             let direction = file.read_u8().unwrap();
-            let offset = read_vector_3(&mut file); // Model's origin relative to the thing's origin.
+            let offset = read_vector_3(&mut file).unwrap(); // Model's origin relative to the thing's origin.
             models.push(ModelInclusion {
                 meta_model: meta_model, direction: direction, offset: offset
             });
@@ -79,6 +79,10 @@ impl MetaThing {
     pub fn author_name(&self) -> &String { &self.author_name }
     
     pub fn thing_name(&self) -> &String { &self.thing_name }
+    
+    pub fn full_name(&self) -> String {
+        format!("{}-{}", self.author_name, self.thing_name)
+    }
     
     pub fn models(&self) -> &Vec<ModelInclusion> { &self.models }
 }

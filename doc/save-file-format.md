@@ -79,3 +79,7 @@ the sequence is the Meta Thing's integer identifier.
     * 2 x 4 byte floats: X, Y coords of Things's origin relative to world origin.
     
     * 4 byte float: Z coord of Thing's origin relative to the ground.
+    
+    * 4 byte unsigned int: Size of reserved section in bytes.
+    
+    * Reserved data. (Currently empty.)
