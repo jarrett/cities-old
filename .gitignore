@@ -1,5 +1,7 @@
 doc/tmp/*
 assets/sprites/*
+saves/* 
+!saves/.gitkeep
 
 #********** rust template********** 
 
