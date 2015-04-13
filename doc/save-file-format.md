@@ -51,6 +51,8 @@ the sequence is the Meta Thing's integer identifier.
     
     * String (no null terminator): Image path. Can be any length up to 65535.
       ASCII encoded.
+    
+    * 4 byte float: Vertical scale.
 
 * Meta Things Table
 

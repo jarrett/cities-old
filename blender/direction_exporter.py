@@ -16,7 +16,7 @@ class DirectionExporter:
     self.bounds = model_bounding_box()
     self.bounds_verts = self.bounds.verts(self.direction)
     # Placing the camera depends on knowing the bounds.
-    self.place_camera()
+    self.place_rig()
     # The MVM must be calculated after the camera is placed.
     self.mvm = model_view_matrix()
     # The camera's projection can only be determined once we know the MVM.
@@ -38,18 +38,23 @@ class DirectionExporter:
     
     
   
-  def place_camera(self):
-    parent = bpy.data.objects['Camera Parent']
-    parent.rotation_euler = Euler((radians(48),
-                                  0,
-                                  radians(28) + (self.direction * radians(45))),
-                                  'XYZ')
-    model_x_size = self.bounds.max_x - self.bounds.min_x
-    model_y_size = self.bounds.max_y - self.bounds.min_y
+  def place_rig(self):
+    camera_parent = bpy.data.objects['Camera Parent']
+    lighting_parent = bpy.data.objects['Lighting Parent']
+    
+    # Rotate the lighting and camera rig.
+    z_rotation = radians(28) + (self.direction * radians(45))
+    camera_parent.rotation_euler   = Euler((radians(48), 0, z_rotation), 'XYZ')
+    lighting_parent.rotation_euler = Euler((0,           0, z_rotation), 'XYZ')
+    
+    # Move the camera target to the model's vertical center. The camera target remains
+    # at x = 0 and y = 0, though.
+    #model_x_size = self.bounds.max_x - self.bounds.min_x
+    #model_y_size = self.bounds.max_y - self.bounds.min_y
     model_z_size = self.bounds.max_z - self.bounds.min_z
-    parent.location.x = (model_x_size / 2) + self.bounds.min_x
-    parent.location.y = (model_y_size / 2) + self.bounds.min_y
-    parent.location.z = (model_z_size / 2) + self.bounds.min_z
+    #rig_parent.location.x = (model_x_size / 2) + self.bounds.min_x
+    #rig_parent.location.y = (model_y_size / 2) + self.bounds.min_y
+    camera_parent.location.z = (model_z_size / 2) + self.bounds.min_z
     bpy.data.scenes['Scene'].update() # Or else the matrix will be stale when we retrieve it.
   
   def zoom_camera(self):

@@ -6,71 +6,48 @@ use std::string::FromUtf8Error;
 
 #[allow(dead_code)]
 pub fn read_string_16(file: &mut File) -> Result<String, IoError> {
-    file.read_be_u16().and_then({ |length|
-        file.read_exact(length as usize).and_then({ |bytes|
-            String::from_utf8(bytes).map_err(from_utf8_error_into_io_error)
-        })
-    })
+    let length = try!(file.read_be_u16());
+    let bytes = try!(file.read_exact(length as usize));
+    String::from_utf8(bytes).map_err(from_utf8_error_into_io_error)
 }
 
 #[allow(dead_code)]
-pub fn read_string_32(file: &mut File) -> Result<String, IoError> {
-    file.read_be_u32().and_then({ |length|
-        file.read_exact(length as usize).and_then({ |bytes|
-            String::from_utf8(bytes).map_err(from_utf8_error_into_io_error)
-        })
-    })
-}
-
-#[allow(dead_code)]
-pub fn read_string_64(file: &mut File) -> Result<String, IoError> {
-    file.read_be_u64().and_then({ |length|
-        file.read_exact(length as usize).and_then({ |bytes|
-            String::from_utf8(bytes).map_err(from_utf8_error_into_io_error)
-        })
-    })
+pub fn write_str_16(file: &mut File, string: &str) -> Result<(), IoError> {
+    try!(file.write_be_u16(string.len() as u16));    
+    file.write_str(string)
 }
 
 #[allow(dead_code)]
 pub fn write_string_16(file: &mut File, string: &String) -> Result<(), IoError> {
-    file.write_be_u16(string.len() as u16).and_then({ |_|
-        file.write_str(string.as_slice())
-    })
+    write_str_16(file, string.as_slice())
 }
 
 #[allow(dead_code)]
 pub fn read_vector_2(file: &mut File) -> Result<Vector2<f32>, IoError> {
-    Ok(Vector2 {
-        x: file.read_be_f32().unwrap(),
-        y: file.read_be_f32().unwrap()
-    })
+    let x = try!(file.read_be_f32());
+    let y = try!(file.read_be_f32());
+    Ok(Vector2 { x: x, y: y })
 }
 
 #[allow(dead_code)]
 pub fn read_vector_3(file: &mut File) -> Result<Vector3<f32>, IoError> {
-    file.read_be_f32().and_then({ |x: f32|
-        file.read_be_f32().map({ |y: f32| -> (f32, f32) (x, y) })
-    }).and_then({ |(x, y)|
-        file.read_be_f32().map({ |z: f32| -> (f32, f32, f32) (x, y, z) })
-    }).map({ |(x, y, z)|
-        Vector3 { x: x, y: y, z: z }
-    })
+    let x = try!(file.read_be_f32());
+    let y = try!(file.read_be_f32());
+    let z = try!(file.read_be_f32());    
+    Ok(Vector3 { x: x, y: y, z: z })
 }
 
 #[allow(dead_code)]
 pub fn write_vector_2(file: &mut File, v: &Vector2<f32>) -> Result<(), IoError> {
-    file.write_be_f32(v.x).and_then({ |()|
-        file.write_be_f32(v.y)
-    })
+    try!(file.write_be_f32(v.x));
+    file.write_be_f32(v.y)
 }
 
 #[allow(dead_code)]
 pub fn write_vector_3(file: &mut File, v: &Vector3<f32>) -> Result<(), IoError> {
-    file.write_be_f32(v.x).and_then({ |()|
-        file.write_be_f32(v.y)
-    }).and_then({ |()|
-        file.write_be_f32(v.z)
-    })
+    try!(file.write_be_f32(v.x));
+    try!(file.write_be_f32(v.y));
+    file.write_be_f32(v.z)
 }
 
 // Consumes a FromUtf8Error, returning a new IoError.

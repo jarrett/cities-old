@@ -109,11 +109,15 @@ fn main() {
     ).unwrap();
     
     println!("Loading terrain");
-    let world = World::new(
-        terrain::source::ImageSource::new(&Path::new("assets/height/river-128x128.png"), 0.1),
+    /*let world: World = World::new(
+        String::from_str("river-128x128"),
+        terrain::source::ImageSource::new(Path::new("assets/height/river-128x128.png"), 0.1),
         &terrain_program, &water_program,
         16, 16
-    );
+    );*/
+    let world: World = World::from_file(
+        &terrain_program, &water_program, 16, 16, &meta_things_map, &Path::new("saves/test.city")
+    ).unwrap();
     
     // For testing only.
     let meta_thing: &Rc<MetaThing> = meta_things_map.get("jarrett-test").unwrap();
@@ -132,6 +136,8 @@ fn main() {
     
     //gldebug::print_vbo::<f32>(model_buffers.uv_buffer, gl::ARRAY_BUFFER, 2);
     //gldebug::print_vbo::<u16>(model_buffers.index_buffer, gl::ELEMENT_ARRAY_BUFFER, 18);
+    
+    world.to_file(&Path::new("saves/test.city"));
     
     println!("Starting main loop");
     while !window.should_close() {
