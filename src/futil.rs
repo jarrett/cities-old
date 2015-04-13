@@ -1,3 +1,5 @@
+#![macro_use]
+
 use cgmath::Vector2;
 use cgmath::Vector3;
 use std::old_io::{File, IoError};
@@ -53,4 +55,14 @@ pub fn write_vector_3(file: &mut File, v: &Vector3<f32>) -> Result<(), IoError> 
 // Consumes a FromUtf8Error, returning a new IoError.
 fn from_utf8_error_into_io_error(_: FromUtf8Error) -> IoError {
     IoError { kind: OtherIoError, desc: "UTF error", detail: None }
+}
+
+pub type IoErrorLine = (IoError, &'static str, usize);
+
+macro_rules! tryln {
+    ($expr:expr) => (try!(
+        ($expr).map_err({ |e|
+            (e, file!(), line!())
+        })
+    ))
 }

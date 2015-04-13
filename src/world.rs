@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::old_io::{File, IoError};
+use std::old_io::File;
 use std::collections::{HashMap, HashSet};
 use num::integer::Integer;
 use cgmath::*;
@@ -10,7 +10,7 @@ use terrain;
 use water;
 use camera::Camera;
 use thing::{Thing, MetaThing, MetaThingsMap};
-use futil::{read_string_16, write_string_16, read_vector_3, write_vector_3};
+use futil::{read_string_16, write_string_16, read_vector_3, write_vector_3, IoErrorLine};
 
 pub struct World {
     pub name: String,
@@ -115,85 +115,97 @@ impl World {
         terrain_program: &terrain::Program, water_program: &water::Program,
         chunk_x_verts: u32, chunk_y_verts: u32,
         meta_things_map: &MetaThingsMap, path: &Path
-    ) -> Result<World, IoError> {
-        let mut file = try!(File::open(path));
+    ) -> Result<World, IoErrorLine> {
+        let mut file = tryln!(File::open(path));
         
         // Read header.
-        try!(file.read_be_u16());        // Header size.
-        try!(file.read_be_u16());        // Version.
-        let name: String = try!(read_string_16(&mut file)); // World name.
+        tryln!(file.read_be_u16());        // Header size.
+        tryln!(file.read_be_u16());        // Version.
+        let name: String = tryln!(read_string_16(&mut file)); // World name.
         
         // Read terrain.
-        try!(file.read_be_u32()); // Terrain size.
-        try!(file.read_u8());   // Terrain storage method.
-        let terrain_path = try!(read_string_16(&mut file));
+        tryln!(file.read_be_u32()); // Terrain size.
+        tryln!(file.read_u8());   // Terrain storage method.
+        let terrain_path = tryln!(read_string_16(&mut file));
         let terrain_path = Path::new(terrain_path);
-        let z_scale: f32 = try!(file.read_be_f32());
+        let z_scale: f32 = tryln!(file.read_be_f32());
         let terrain_source = terrain::source::ImageSource::new(terrain_path, z_scale);
         let mut world = World::new(name, terrain_source, terrain_program, water_program, chunk_x_verts, chunk_y_verts);
         
         // Read meta things table.
-        try!(file.read_be_u32()); // Table size.
-        let meta_thing_count = try!(file.read_be_u32());
+        tryln!(file.read_be_u32()); // Table size.
+        let meta_thing_count = tryln!(file.read_be_u32());
         let mut indexed_meta_things: Vec<Rc<MetaThing>> = Vec::with_capacity(meta_thing_count as usize);        
         for _ in 0u32..meta_thing_count {
-            let meta_thing_name = try!(read_string_16(&mut file));
+            let meta_thing_name = tryln!(read_string_16(&mut file));
             let meta_thing: Rc<MetaThing> = meta_things_map.get(&meta_thing_name).unwrap().clone();
             indexed_meta_things.push(meta_thing);
             
         }
         
         // Read things.
-        try!(file.read_be_u32()); // Things section size.
-        let thing_count = try!(file.read_be_u32());
+        tryln!(file.read_be_u32()); // Things section size.
+        let thing_count = tryln!(file.read_be_u32());
         for _ in 0u32..thing_count {
-            let meta_thing_index = try!(file.read_be_u32());
+            let meta_thing_index = tryln!(file.read_be_u32());
             let meta_thing = &indexed_meta_things[meta_thing_index as usize];
-            let direction = try!(file.read_u8());
-            let position = try!(read_vector_3(&mut file));
+            let direction = tryln!(file.read_u8());
+            let position = tryln!(read_vector_3(&mut file));
             let thing = Thing::new(meta_thing, &position, direction);
-            try!(file.read_be_u32()); // Size of reserved section.
+            tryln!(file.read_be_u32()); // Size of reserved section.
             world.things.push(Rc::new(thing));
         }
         Ok(world)
     }
     
-    pub fn to_file(&self, path: &Path) -> Result<(), IoError> {
-        let mut file = try!(File::create(path));
+    pub fn to_file(&self, path: &Path) -> Result<(), IoErrorLine> {
+        let mut file = tryln!(File::create(path));
         
         // Write header;
-        try!(file.write_be_u16(48 + self.name.len() as u16)); // Header size.
-        try!(write_string_16(&mut file, &self.name));
+        tryln!(file.write_be_u16(48 + self.name.len() as u16)); // Header size.
+        tryln!(file.write_be_u16(0)); // Version.
+        tryln!(write_string_16(&mut file, &self.name));
         
         // Write terrain.
         let terrain_path: String = format!("assets/height/{}.png", &self.name);
-        try!(file.write_be_u16(56 + terrain_path.len() as u16)); // Terrain section size.
-        try!(file.write_u8(0)); // Terrain storage method.
-        try!(write_string_16(&mut file, &terrain_path));
-        try!(file.write_be_f32(0.1)); // FIXME. Make this value dynamic?
+        tryln!(file.write_be_u32(56 + terrain_path.len() as u32)); // Terrain section size.
+        tryln!(file.write_u8(0)); // Terrain storage method.
+        tryln!(write_string_16(&mut file, &terrain_path));
+        tryln!(file.write_be_f32(0.1)); // FIXME. Make this value dynamic?
         
-        // Write meta things table.
         // Build a hash set representing the list of unique meta things in this world.
         let mut hash_set: HashSet<String> = HashSet::new();
         for thing in self.things.iter() {
             hash_set.insert(thing.meta_thing.full_name().clone());
         }
-        let mut hash_map: HashMap<String, u32> = HashMap::new();
+        
+        // Write the header data for the meta things table.
+        // (Section size, number of meta things.)
+        let mut section_size: u32 = 8;
+        for meta_thing_name in hash_set.iter() {
+            section_size = section_size + 2 + meta_thing_name.len() as u32;
+        }
+        tryln!(file.write_be_u32(section_size)); // Section size.
+        tryln!(file.write_be_u32(hash_set.len() as u32)); // Number of meta things.
+        
         // Write each of the unique meta things to the table. Also build a map from
         // the meta thing to its index. We'll use that later when we write the things.
+        let mut hash_map: HashMap<String, u32> = HashMap::new();
         for (i, meta_thing_name) in hash_set.drain().enumerate() {
-            try!(write_string_16(&mut file, &meta_thing_name));
+            tryln!(write_string_16(&mut file, &meta_thing_name));
             hash_map.insert(meta_thing_name, i as u32);          
         }
         
-        // Write things.
+        // Write the header data for the things list. (Section size, number of things.)
+        tryln!(file.write_be_u32(8 + 21 * self.things.len() as u32)); // Section size.
+        tryln!(file.write_be_u32(self.things.len() as u32)); // Number of things.
         for thing in self.things.iter() {
             let meta_thing: &MetaThing = &thing.meta_thing;
             let meta_thing_index: u32 = *hash_map.get(&meta_thing.full_name()).unwrap();
-            try!(file.write_be_u32(meta_thing_index));
-            try!(file.write_u8(thing.direction));
-            try!(write_vector_3(&mut file, &thing.position));
-            try!(file.write_be_u32(0)); // Size of reserved section.
+            tryln!(file.write_be_u32(meta_thing_index));
+            tryln!(file.write_u8(thing.direction));
+            tryln!(write_vector_3(&mut file, &thing.position));
+            tryln!(file.write_be_u32(0)); // Size of reserved section.
         }
         
         Ok(())
