@@ -108,26 +108,26 @@ fn main() {
         &Path::new("assets/things"),
     ).unwrap();
     
-    println!("Loading terrain");
-    let mut world: World = World::new(
+    println!("Loading world");
+    /*let mut world: World = World::new(
         String::from_str("river-128x128"),
         terrain::source::ImageSource::new(Path::new("assets/height/river-128x128.png"), 0.1),
         &terrain_program, &water_program,
         16, 16
-    );
+    );*/
     
-    /*let mut world: World = World::from_file(
+    let mut world: World = World::from_file(
         &terrain_program, &water_program, 16, 16, &meta_things_map, &Path::new("saves/test.city")
-    ).unwrap();*/
+    ).unwrap();
     
     // For testing only.
-    let meta_thing: &Rc<MetaThing> = meta_things_map.get("jarrett-test").unwrap();
+    /*let meta_thing: &Rc<MetaThing> = meta_things_map.get("jarrett-test").unwrap();
     for direction in 0u8..8u8 {
         let thing = Rc::new(
           Thing::new(meta_thing, &Vector3::new(5.0 + 3.0 * direction as f32, 5.0, 45.0), direction)
         );
         world.things.push(thing);
-    }
+    }*/
     
     let z_sorted = ZSorted::new(&world.things, &mut camera);
     
@@ -137,7 +137,7 @@ fn main() {
     //gldebug::print_vbo::<f32>(model_buffers.uv_buffer, gl::ARRAY_BUFFER, 2);
     //gldebug::print_vbo::<u16>(model_buffers.index_buffer, gl::ELEMENT_ARRAY_BUFFER, 18);
     
-    world.to_file(&Path::new("saves/test.city")).unwrap();
+    //world.to_file(&Path::new("saves/test.city")).unwrap();
     
     println!("Starting main loop");
     while !window.should_close() {
