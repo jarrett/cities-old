@@ -12,6 +12,7 @@ extern crate image;
 extern crate libc;
 extern crate num;
 
+mod math;
 mod assertions;
 mod glutil;
 mod gldebug;
@@ -25,10 +26,12 @@ mod chunk;
 mod water;
 mod thing;
 mod model;
+mod mouse;
 
 use std::default::Default;
 use std::rc::Rc;
 use std::cmp;
+use std::path::Path;
 use cgmath::*;
 use glfw::{Context, Action, Key};
 use gl::types::*;

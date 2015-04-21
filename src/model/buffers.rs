@@ -3,11 +3,11 @@ use std::ptr;
 use libc::{c_void};
 use gl;
 use gl::types::*;
-use cgmath::*;
+use cgmath::{Point3, Vector2};
 use model;
 
 pub struct Buffers {
-    pub positions: Vec<Vector3<f32>>,
+    pub positions: Vec<Point3<f32>>,
     pub uvs:       Vec<Vector2<f32>>,
     pub indices:   Vec<u16>,
     

@@ -1,7 +1,7 @@
 use std::mem;
 use std::ptr;
 use libc::{c_void};
-use cgmath::*;
+use cgmath::{Vector, EuclideanVector, Vector3, Point, Point3};
 use gl;
 use gl::types::*;
 
@@ -9,14 +9,15 @@ use world::World;
 use terrain;
 use water;
 use camera::Camera;
+use math::Quad;
 
 static WATER_Z: f32 = 5.0;
 
 pub struct Chunk {
-    terrain_positions: Vec<Vector3<f32>>,
+    terrain_positions: Vec<Point3<f32>>,
     terrain_normals: Vec<Vector3<f32>>,
   
-    water_positions: Vec<Vector3<f32>>,
+    water_positions: Vec<Point3<f32>>,
     water_depths: Vec<f32>,
     
     min_x:    u32, // Minimum X position.
@@ -76,9 +77,9 @@ impl Chunk {
                 let abs_y: f32 = chunk.absolutize_y(y_s) as f32;
                 
                 chunk.water_depths.push(0.0);
-                chunk.water_positions.push(Vector3::new(abs_x, abs_y, WATER_Z));
+                chunk.water_positions.push(Point3::new(abs_x, abs_y, WATER_Z));
                 
-                chunk.terrain_positions.push(Vector3::new(abs_x, abs_y, 0.0));
+                chunk.terrain_positions.push(Point3::new(abs_x, abs_y, 0.0));
                 
                 chunk.terrain_normals.push(Vector3::new(0.0, 0.0, 1.0));
             }
@@ -126,7 +127,7 @@ impl Chunk {
         rel_x >= 0 && rel_x < self.x_verts as i32 && rel_y >= 0 && rel_y < self.y_verts as i32
     }
     
-    pub fn vert_position_at(&self, abs_x: u32, abs_y: u32) -> Option<Vector3<f32>> {
+    pub fn vert_position_at(&self, abs_x: u32, abs_y: u32) -> Option<Point3<f32>> {
       if abs_x >= self.min_x && abs_x <= (self.min_x + self.x_size) &&
          abs_y >= self.min_y && abs_y <= (self.min_y + self.y_size)
       {
@@ -178,13 +179,12 @@ impl Chunk {
         self.normals_buffered = true;
     }
     
-    /* The vertex attributes are interleaved, position followed by normal. */
     pub fn buffer_positions(&mut self) {
         unsafe {
             gl::BindBuffer(gl::ARRAY_BUFFER, self.terrain_position_buffer);
             gl::BufferData(
                 gl::ARRAY_BUFFER,
-                (mem::size_of::<Vector3<f32>>() as u32 * self.x_verts * self.y_verts) as i64,
+                (mem::size_of::<Point3<f32>>() as u32 * self.x_verts * self.y_verts) as i64,
                 self.terrain_positions.as_ptr() as *const c_void,
                 gl::DYNAMIC_DRAW
             );
@@ -192,7 +192,7 @@ impl Chunk {
             gl::BindBuffer(gl::ARRAY_BUFFER, self.water_position_buffer);
             gl::BufferData(
               gl::ARRAY_BUFFER,
-              (mem::size_of::<Vector3<f32>>() as u32 * self.x_verts * self.y_verts) as i64,
+              (mem::size_of::<Point3<f32>>() as u32 * self.x_verts * self.y_verts) as i64,
               self.water_positions.as_ptr() as *const c_void,
               gl::STATIC_DRAW
             );
@@ -211,7 +211,7 @@ impl Chunk {
                 // NW triangle.
                 indices.push((( y      * self.x_verts) + x    ) as GLushort); // NW.
                 indices.push((( y      * self.x_verts) + x + 1) as GLushort); // NE.
-                indices.push((((y + 1) * self.x_verts) + x    ) as GLushort);  // SW.
+                indices.push((((y + 1) * self.x_verts) + x    ) as GLushort); // SW.
       
                 // SE triangle.
                 indices.push((((y + 1) * self.x_verts) + x + 1) as GLushort); // SE.
@@ -255,7 +255,7 @@ impl Chunk {
       
                 // The root is the vertex that's not one of the two legs. It's the vertex
                 // at the current (x, y).
-                let root: &Vector3<f32> = &(self.terrain_positions[
+                let root: &Point3<f32> = &(self.terrain_positions[
                     self.vi(rel_x, rel_y)
                 ]);
       
@@ -280,7 +280,7 @@ impl Chunk {
     }
     
     fn maybe_add_tri_normal(
-        &self, world: &World, sum_norm: &mut Vector3<f32>, root: &Vector3<f32>,
+        &self, world: &World, sum_norm: &mut Vector3<f32>, root: &Point3<f32>,
         leg_1_rel_x: i32, leg_1_rel_y: i32, leg_2_rel_x: i32, leg_2_rel_y: i32
     ) {
         let leg_1_abs_x = self.absolutize_x(leg_1_rel_x) as i32;
@@ -292,8 +292,8 @@ impl Chunk {
         // 
         // If this chunk contains the vertex, we can't go through the world. This chunk
         // has already been borrowed mutably, so the world can't access it right now.
-        let leg_1_opt: Option<Vector3<f32>>;
-        let leg_2_opt: Option<Vector3<f32>>;
+        let leg_1_opt: Option<Point3<f32>>;
+        let leg_2_opt: Option<Point3<f32>>;
         
         if self.contains_rel(leg_1_rel_x, leg_1_rel_y) {
           leg_1_opt = self.vert_position_at(leg_1_abs_x as u32, leg_1_abs_y as u32);
@@ -310,8 +310,8 @@ impl Chunk {
         match (leg_1_opt, leg_2_opt) {  
             (Some(leg_1), Some(leg_2)) => {            
                 // The direction vectors of each leg of this triangle.
-                let leg_dir_1: Vector3<f32> = leg_1.sub_v(root);
-                let leg_dir_2: Vector3<f32> = leg_2.sub_v(root);
+                let leg_dir_1: Vector3<f32> = leg_1.sub_p(root);
+                let leg_dir_2: Vector3<f32> = leg_2.sub_p(root);
             
                 // The normal of this triangle is the cross product of the two leg directions.
                 let mut tri_norm: Vector3<f32> = leg_dir_1.cross(&leg_dir_2).normalize();
@@ -393,6 +393,19 @@ impl Chunk {
             gl::BindTexture(gl::TEXTURE_2D, 0);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
             gl::BindVertexArray(0);
+        }
+    }
+    
+    pub fn each_quad(&self, callback: FnOnce(Quad)) {
+        for y in 0u32..self.y_size {
+            for x in 0u32..self.x_size {
+                callback((
+                    self.terrain_positions[self.vi(x    , y    )],
+                    self.terrain_positions[self.vi(x + 1, y    )],
+                    self.terrain_positions[self.vi(x + 1, y + 1)],
+                    self.terrain_positions[self.vi(x    , y + 1)]
+                ));
+            }
         }
     }
 }

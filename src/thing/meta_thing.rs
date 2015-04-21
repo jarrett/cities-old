@@ -1,9 +1,10 @@
+use std::path::Path;
 use std::rc::Rc;
 use std::collections::HashMap;
-use std::old_io::File;
-use std::old_io::fs;
+use std::fs::File;
+use std::fs;
 use std::result::Result;
-use cgmath::*;
+use cgmath::Vector3;
 use futil::{read_string_16, read_vector_3};
 
 use model::MetaModel;

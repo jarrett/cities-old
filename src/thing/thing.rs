@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use cgmath::*;
+use cgmath::Point3;
 
 use super::MetaThing;
 use model::{Model, Buffers, Program3d};
@@ -7,14 +7,14 @@ use camera::Camera;
 
 
 pub struct Thing {
-    pub position: Vector3<f32>,
+    pub position: Point3<f32>,
     pub direction: u8,
     pub meta_thing: Rc<MetaThing>,
     pub models: Vec<Model>
 }
 
 impl Thing {
-    pub fn new(meta_thing: &Rc<MetaThing>, position: &Vector3<f32>, direction: u8) -> Thing {
+    pub fn new(meta_thing: &Rc<MetaThing>, position: &Point3<f32>, direction: u8) -> Thing {
         let models: Vec<Model> = meta_thing.models().iter().map( |model_inclusion| {
             // FIXME: Multiply model_inclusion.offset by a rotation matrix representing
             // the thing's direction.

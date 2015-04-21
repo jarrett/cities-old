@@ -1,6 +1,7 @@
-use std::old_io::File;
-use std::old_io::fs;
+use std::fs::File;
+use std::fs;
 use std::mem;
+use std::path::Path;
 use libc::{c_void};
 use std::rc::Rc;
 use std::collections::HashMap;
@@ -86,13 +87,13 @@ impl MetaModel {
     
     pub fn buffer(&mut self, buffers: &mut Buffers) {
         // See doc/model-rendering.md for a diagram of these vertices.
-        let tb_pos = Vector3::new(self.x_size / -2.0, self.y_size / -2.0, self.z_size);
-        let tr_pos = Vector3::new(self.x_size /  2.0, self.y_size / -2.0, self.z_size);
-        let tf_pos = Vector3::new(self.x_size /  2.0, self.y_size /  2.0, self.z_size);
-        let tl_pos = Vector3::new(self.x_size / -2.0, self.y_size /  2.0, self.z_size);
-        let bl_pos = Vector3::new(self.x_size / -2.0, self.y_size /  2.0, 0.0);
-        let bf_pos = Vector3::new(self.x_size /  2.0, self.y_size /  2.0, 0.0);
-        let br_pos = Vector3::new(self.x_size /  2.0, self.y_size / -2.0, 0.0);
+        let tb_pos = Point3::new(self.x_size / -2.0, self.y_size / -2.0, self.z_size);
+        let tr_pos = Point3::new(self.x_size /  2.0, self.y_size / -2.0, self.z_size);
+        let tf_pos = Point3::new(self.x_size /  2.0, self.y_size /  2.0, self.z_size);
+        let tl_pos = Point3::new(self.x_size / -2.0, self.y_size /  2.0, self.z_size);
+        let bl_pos = Point3::new(self.x_size / -2.0, self.y_size /  2.0, 0.0);
+        let bf_pos = Point3::new(self.x_size /  2.0, self.y_size /  2.0, 0.0);
+        let br_pos = Point3::new(self.x_size /  2.0, self.y_size / -2.0, 0.0);
         
         self.index_offset = buffers.indices.len() as u16;
         
@@ -147,7 +148,7 @@ impl MetaModel {
     
     pub fn draw(
         &self, program: &model::Program3d, buffers: &Buffers,
-        camera: &Camera, abs_position: &Vector3<f32>,
+        camera: &Camera, abs_position: &Point3<f32>,
         direction: u8
     ) {
         if !buffers.uploaded { panic!("Called draw before uploading buffers"); }

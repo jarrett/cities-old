@@ -1,5 +1,6 @@
 use std::mem;
 use std::ptr;
+use std::path::Path;
 use gl;
 use gl::types::*;
 use libc::{c_void};

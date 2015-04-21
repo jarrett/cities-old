@@ -1,4 +1,5 @@
-use std::old_io::fs;
+use std::path::Path;
+use std::fs;
 use std::iter;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -7,7 +8,7 @@ use gl::types::*;
 use image;
 use image::GenericImage;
 use libc::{c_void};
-use cgmath::*;
+use cgmath::{Vector, Vector2};
 
 use super::{WidthHeight, pack_some, sort_for_packing, Config};
 

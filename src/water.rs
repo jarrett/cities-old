@@ -1,4 +1,5 @@
 use std::default::Default;
+use std::path::Path;
 use gl;
 use gl::types::*;
 

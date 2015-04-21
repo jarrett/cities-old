@@ -1,17 +1,17 @@
 use std::rc::Rc;
-use cgmath::*;
+use cgmath::{Point, Point3, Vector3};
 
 use camera::Camera;
 use super::{MetaModel, Buffers, Program3d};
 
 pub struct Model {
-    pub abs_position: Vector3<f32>, // World coords.
+    pub abs_position: Point3<f32>, // World coords.
     pub direction: u8,
     pub meta_model: Rc<MetaModel>
 }
 
 impl Model {
-    pub fn new(thing_origin: &Vector3<f32>, offset: &Vector3<f32>, direction: u8, meta_model: &Rc<MetaModel>) -> Model {
+    pub fn new(thing_origin: &Point3<f32>, offset: &Vector3<f32>, direction: u8, meta_model: &Rc<MetaModel>) -> Model {
         Model {
             abs_position: thing_origin.add_v(offset),
             direction: direction,

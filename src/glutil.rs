@@ -1,8 +1,9 @@
-use std::old_io::File;
+use std::fs::File;
 use std::str;
 use std::ffi::CString;
 use std::iter;
 use std::ptr;
+use std::path::Path;
 use gl;
 use gl::types::*;
 use libc;

@@ -1,5 +1,5 @@
-use std::old_io::File;
-use cgmath::*;
+use std::fs::File;
+use cgmath::Vector2;
 
 use futil::read_vector_2;
 

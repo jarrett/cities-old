@@ -1,4 +1,4 @@
-use cgmath::*;
+use cgmath::{Rad, rad, Point, Point3, Vector2, Matrix, Matrix3, Matrix4, ToMatrix4, ortho};
 
 // 28 degrees on the Z axis.
 static CAMERA_TILT: Rad<f32> = Rad { s: 3.97935069f32 };
@@ -39,8 +39,9 @@ impl Camera {
         }
     }
     
-    pub fn distance_to(&self, point: &Vector3<f32>) -> f32 {
-        self.projection.mul_m(&self.model_view).mul_v(&point.extend(1.0)).z
+    pub fn distance_to(&self, point: &Point3<f32>) -> f32 {
+        let mvp = self.projection.mul_m(&self.model_view);
+        mvp.mul_v(&point.to_vec().extend(1.0)).z
     }
     
     pub fn increment_orbit(&mut self) {

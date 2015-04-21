@@ -1,16 +1,17 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::old_io::File;
+use std::fs::File;
 use std::collections::{HashMap, HashSet};
+use std::path::Path;
 use num::integer::Integer;
-use cgmath::*;
+use cgmath::Point3;
 
 use chunk::Chunk;
 use terrain;
 use water;
 use camera::Camera;
 use thing::{Thing, MetaThing, MetaThingsMap};
-use futil::{read_string_16, write_string_16, read_vector_3, write_vector_3, IoErrorLine};
+use futil::{read_string_16, write_string_16, read_point_3, write_point_3, IoErrorLine};
 
 pub struct World {
     pub name: String,
@@ -150,7 +151,7 @@ impl World {
             let meta_thing_index = tryln!(file.read_be_u32());
             let meta_thing = &indexed_meta_things[meta_thing_index as usize];
             let direction = tryln!(file.read_u8());
-            let position = tryln!(read_vector_3(&mut file));
+            let position = tryln!(read_point_3(&mut file));
             let thing = Thing::new(meta_thing, &position, direction);
             tryln!(file.read_be_u32()); // Size of reserved section.
             world.things.push(Rc::new(thing));
@@ -204,7 +205,7 @@ impl World {
             let meta_thing_index: u32 = *hash_map.get(&meta_thing.full_name()).unwrap();
             tryln!(file.write_be_u32(meta_thing_index));
             tryln!(file.write_u8(thing.direction));
-            tryln!(write_vector_3(&mut file, &thing.position));
+            tryln!(write_point_3(&mut file, &thing.position));
             tryln!(file.write_be_u32(0)); // Size of reserved section.
         }
         
@@ -229,7 +230,7 @@ impl World {
         }
     }
 
-    pub fn vert_position_at(&self, abs_x: i32, abs_y: i32) -> Option<Vector3<f32>> {
+    pub fn vert_position_at(&self, abs_x: i32, abs_y: i32) -> Option<Point3<f32>> {
         if abs_x >= 0 && abs_y >= 0 {
             match self.chunk_containing(abs_x as u32, abs_y as u32) {
                 Some(cell) => {
