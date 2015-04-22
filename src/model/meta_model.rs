@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::fs;
 use std::mem;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use libc::{c_void};
 use std::rc::Rc;
 use std::collections::HashMap;
@@ -68,8 +68,8 @@ impl MetaModel {
     
     pub fn load_dir(path: &Path, buffers: &mut Buffers, spritesheet: &Spritesheet) -> MetaModelsMap {
         let mut map: MetaModelsMap = HashMap::new();
-        for path in fs::walk_dir(path).unwrap() {
-            let path: &Path = path.unwrap().path().as_path();
+        for entry in fs::walk_dir(path).unwrap() {
+            let path: &PathBuf = &entry.unwrap().path();
             if path.ends_with(".model") {
                 let mut mm = MetaModel::from_file(path, spritesheet);
                 mm.buffer(buffers);

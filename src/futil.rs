@@ -12,7 +12,7 @@ use byteorder;
 #[allow(dead_code)]
 pub fn read_string_16(file: &mut File) -> Result<String, io::Error> {
     let length = try!(file.read_u16::<BigEndian>()) as usize;
-    let string = String::with_capacity(length);
+    let mut string = String::with_capacity(length);
     try!(file.take(length as u64).read_to_string(&mut string));
     Ok(string)
 }
@@ -57,6 +57,7 @@ pub fn read_vector_3(file: &mut File) -> Result<Vector3<f32>, io::Error> {
 pub fn write_point_2(file: &mut File, v: &Point2<f32>) -> Result<(), io::Error> {
     try!(file.write_f32::<BigEndian>(v.x));
     try!(file.write_f32::<BigEndian>(v.y));
+    Ok(())
 }
 
 #[allow(dead_code)]
@@ -64,11 +65,12 @@ pub fn write_point_3(file: &mut File, v: &Point3<f32>) -> Result<(), io::Error> 
     try!(file.write_f32::<BigEndian>(v.x));
     try!(file.write_f32::<BigEndian>(v.y));
     try!(file.write_f32::<BigEndian>(v.z));
+    Ok(())
 }
 
 // Consumes a FromUtf8Error, returning a new io::Error.
 fn from_utf8_error_into_io_error(_: FromUtf8Error) -> io::Error {
-    io::Error::new(io::ErrorKind::Other, "UTF-8 error");
+    io::Error::new(io::ErrorKind::Other, "UTF-8 error")
 }
 
 pub type IoErrorLine = (io::Error, &'static str, u32);

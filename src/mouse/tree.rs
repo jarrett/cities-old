@@ -11,7 +11,7 @@ pub struct Tree {
     pub children: Option<Children>
 }
 
-struct Children {
+pub struct Children {
     pub q1: Box<Tree>,
     pub q2: Box<Tree>,
     pub q3: Box<Tree>,
@@ -37,8 +37,9 @@ impl Tree {
     }
     
     pub fn insert(&mut self, target: Target) {
+        self.expand_by(target.bb());
         match self.children {
-            Some(c) => {
+            Some(ref mut c) => {
                 if        aabb3_contains_aabb3(&c.q1.bb, target.bb()) {
                     c.q1.insert(target);
                 } else if aabb3_contains_aabb3(&c.q2.bb, target.bb()) {
@@ -55,7 +56,6 @@ impl Tree {
                 self.targets.push(target);
             }
         }
-        self.expand_by(target.bb());
     }
     
     fn expand_by(&mut self, bb: &Aabb3<f32>) {

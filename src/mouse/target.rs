@@ -7,18 +7,18 @@ use camera::Camera;
 use thing::Thing;
 use math::Triangle;
 
-enum Target {
+pub enum Target {
     GroundTarget(Aabb3<f32>, Triangle),
     WaterTarget(Aabb3<f32>),
     ThingTarget(Aabb3<f32>, Rc<RefCell<Thing>>)
 }
 
 impl Target {
-    pub fn bb(&self) -> &Aabb3<f32> {
-        match *self {
-            Target::GroundTarget(bb, _) => { &bb },
-            Target::WaterTarget(bb)     => { &bb },
-            Target::ThingTarget(bb, _)  => { &bb }
+    pub fn bb<'a>(&'a self) -> &'a Aabb3<f32> {
+        match self {
+            &Target::GroundTarget(ref bb, _) => { bb },
+            &Target::WaterTarget(ref bb)     => { bb },
+            &Target::ThingTarget(ref bb, _)  => { bb }
         }
     }
 }

@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::fs;
 use std::iter;
 use std::collections::HashMap;
@@ -6,11 +6,11 @@ use std::rc::Rc;
 use gl;
 use gl::types::*;
 use image;
-use image::GenericImage;
+use image::{GenericImage, DynamicImage, RgbaImage};
 use libc::{c_void};
 use cgmath::{Vector, Vector2};
 
-use super::{WidthHeight, pack_some, sort_for_packing, Config};
+use super::{WidthHeight, Packed, pack_some, sort_for_packing, Config};
 
 pub struct Spritesheet {
     pub width: u32,
@@ -38,7 +38,7 @@ impl Sprite {
 
 struct ImageWrapper {
     inner: image::DynamicImage,
-    path: Path
+    path: PathBuf
 }
 
 impl ImageWrapper {
@@ -51,13 +51,13 @@ impl WidthHeight for ImageWrapper {
 }
 
 impl Spritesheet {
-    pub fn new(width: u32, height: u32, paths: &Vec<Path>, config: &Config) -> Spritesheet {
+    pub fn new(width: u32, height: u32, paths: &Vec<PathBuf>, config: &Config) -> Spritesheet {
         let mut sheet = Spritesheet {
             width: width, height: height, by_name: HashMap::new(), texture_ids: Vec::new()
         };
         
-        let mut images_to_pack: Vec<ImageWrapper> = paths.iter().map(|path| {
-            let image = image::open(&path).unwrap();
+        let mut images_to_pack: Vec<ImageWrapper> = paths.iter().map(|path: &PathBuf| {
+            let image: DynamicImage = image::open(&path).unwrap();
             ImageWrapper { inner: image, path: path.clone() }
         }).collect();
         
@@ -71,13 +71,11 @@ impl Spritesheet {
     }
     
     pub fn load_dir(width: u32, height: u32, path: &Path, config: &Config) -> Spritesheet {
-        let mut image_paths = Vec::new();
+        let mut image_paths: Vec<PathBuf> = Vec::new();
         for path in fs::walk_dir(path).unwrap() {
-            match path.unwrap().extension_str() {
-                Some("png") => {
-                    image_paths.push(path.clone());
-                },
-                None => {}
+            let path: &PathBuf = &path.unwrap().path();
+            if path.ends_with(".png") {
+                image_paths.push(path.clone());
             }
         }
         Spritesheet::new(width, height, &image_paths, config)
@@ -96,15 +94,14 @@ impl Spritesheet {
         // RGBA requires four bytes per pixel.
         let mut buffer: Vec<u8> = iter::repeat(255).take((width * height * 4) as usize).collect();
         
-        while !packed_images.is_empty() {
-            let packed = packed_images.pop().unwrap();
-            let (min_x, min_y)   = (packed.min_x, packed.min_y);
-            let wrapper          = packed.into_inner();
-            let name             = wrapper.path.filestem_str().unwrap().to_string();
-            let img              = wrapper.into_inner().to_rgba();
-            let img_w            = img.width();
-            let img_h            = img.height();
-            let img_raw: Vec<u8> = img.into_raw();
+        for packed in packed_images.drain() {
+            let (min_x, min_y): (u32, u32)            = (packed.min_x, packed.min_y);
+            let wrapper:        ImageWrapper          = packed.into_inner();
+            let name:           String                = String::from_str(wrapper.path.file_stem().unwrap().to_str().unwrap());
+            let img:            RgbaImage             = wrapper.into_inner().to_rgba();
+            let img_w:          u32                   = img.width();
+            let img_h:          u32                   = img.height();
+            let img_raw:        Vec<u8>               = img.into_raw();
         
             // Copy the image into the buffer at its appropriate position.
             // This is done row-by-row. rel_ coordinates are relative to the image's

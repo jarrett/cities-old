@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::collections::HashMap;
 use std::fs::File;
@@ -60,8 +60,8 @@ impl MetaThing {
     
     pub fn load_dir(meta_models_map: &MetaModelsMap, path: &Path) -> Result<MetaThingsMap, String> {
         let mut map: MetaThingsMap = HashMap::new();
-        for path in fs::walk_dir(path).unwrap() {
-            let path: &Path = path.unwrap().path().as_path();
+        for entry in fs::walk_dir(path).unwrap() {
+            let path: &PathBuf = &entry.unwrap().path();
             if path.ends_with(".thing") {
                 let result = MetaThing::from_file(meta_models_map, path);
                 match result {

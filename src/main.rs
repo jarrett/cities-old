@@ -1,9 +1,7 @@
-#![feature(path)]
-#![feature(std_misc)]
-#![feature(io)]
-#![feature(libc)]
 #![feature(collections)]
-#![feature(core)]
+#![feature(convert)]
+#![feature(fs_walk)]
+#![feature(std_misc)]
 
 extern crate glfw;
 extern crate gl;
