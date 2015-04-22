@@ -27,7 +27,7 @@ impl Program {
         let id = glutil::make_program(&Path::new("glsl/water.vert.glsl"), &Path::new("glsl/water.frag.glsl"));
         Program {
             id:             id,
-            model_view_idx: glutil::get_uniform_location(id, "model"),
+            model_view_idx: glutil::get_uniform_location(id, "modelView"),
             projection_idx: glutil::get_uniform_location(id, "projection"),
             
             foam_idx:       glutil::get_uniform_location(id, "foam"),

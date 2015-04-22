@@ -90,7 +90,7 @@ fn main() {
         texture_size, texture_size,
         &Path::new("assets/sprites"),
         &Default::default()
-    );
+    ).unwrap();
     
     println!("Initing model buffers");
     let mut model_buffers = model::Buffers::new();
@@ -100,7 +100,7 @@ fn main() {
       &Path::new("assets/models"),
       &mut model_buffers,
       &spritesheet
-    );
+    ).unwrap();
     
     model_buffers.upload(&model_program3d);
     

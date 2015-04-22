@@ -2,7 +2,7 @@
 name = "cities"
 version = "0.0.1"
 dependencies = [
- "byteorder 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "byteorder 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "cgmath 0.1.3 (git+https://github.com/bjz/cgmath-rs.git)",
  "gl 0.0.12 (git+https://github.com/bjz/gl-rs)",
  "glfw 0.0.7 (git+https://github.com/bjz/glfw-rs.git)",
@@ -18,7 +18,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "byteorder"
-version = "0.3.7"
+version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -90,7 +90,7 @@ name = "image"
 version = "0.3.7"
 source = "git+https://github.com/PistonDevelopers/image#b720b8529cb8edbf4cdfc302ec144f402c990953"
 dependencies = [
- "byteorder 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "byteorder 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "enum_primitive 0.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.1.22 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

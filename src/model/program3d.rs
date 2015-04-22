@@ -35,7 +35,7 @@ impl Program3d {
         Program3d {
             id:             id,
             
-            model_view_idx: glutil::get_uniform_location(id, "model"),
+            model_view_idx: glutil::get_uniform_location(id, "modelView"),
             projection_idx: glutil::get_uniform_location(id, "projection"),
             orbit_idx:      glutil::get_uniform_location(id, "orbit"),
             direction_idx:  glutil::get_uniform_location(id, "direction"),

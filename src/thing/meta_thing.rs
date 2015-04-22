@@ -4,9 +4,10 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::fs;
 use std::result::Result;
+use std::io;
 use byteorder::{ReadBytesExt, BigEndian};
 use cgmath::Vector3;
-use futil::{read_string_16, read_vector_3};
+use futil::{read_string_16, read_vector_3, IoErrorLine};
 
 use model::MetaModel;
 use model::MetaModelsMap;
@@ -19,35 +20,37 @@ pub struct MetaThing {
 }
 
 impl MetaThing {
-    pub fn from_file(meta_models_map: &MetaModelsMap, path: &Path) -> Result<MetaThing, String> {
-        let mut file = File::open(path).unwrap();
+    pub fn from_file(meta_models_map: &MetaModelsMap, path: &Path) -> Result<MetaThing, IoErrorLine> {
+        let mut file = tryln!(File::open(path));
         
         // Read header.
-        file.read_u16::<BigEndian>().unwrap(); // Header size.
-        file.read_u16::<BigEndian>().unwrap(); // Version.
-        let author_name = read_string_16(&mut file).unwrap();
-        let thing_name = read_string_16(&mut file).unwrap();
-        file.read_u8().unwrap(); // Config key size.
+        tryln!(file.read_u16::<BigEndian>()); // Header size.
+        tryln!(file.read_u16::<BigEndian>()); // Version.
+        let author_name = tryln!(read_string_16(&mut file));
+        let thing_name = tryln!(read_string_16(&mut file));
+        tryln!(file.read_u8()); // Config key size.
         
         // Read models.
-        file.read_u32::<BigEndian>().unwrap(); // Size of models section.
-        let model_count = file.read_u16::<BigEndian>().unwrap();
+        tryln!(file.read_u32::<BigEndian>()); // Size of models section.
+        let model_count = tryln!(file.read_u16::<BigEndian>());
         let mut models: Vec<ModelInclusion> = Vec::with_capacity(model_count as usize);
         for _ in 0u16..model_count {
-            let author_name = read_string_16(&mut file).unwrap();
-            let model_name = read_string_16(&mut file).unwrap();
+            let author_name = tryln!(read_string_16(&mut file));
+            let model_name = tryln!(read_string_16(&mut file));
             let key: String = format!("{}-{}", author_name, model_name);
-            let meta_model: Option<&Rc<MetaModel>> = meta_models_map.get(key.as_str());
-            if meta_model.is_none() {
-                let known_models = ""; // FIXME
-                return Err(format!(
-                    "{} referenced model {}, but that model doesn't exist. Known models are: {}",
-                    path.display(), key, known_models
-                ));
-            }
-            let meta_model = meta_model.unwrap().clone();
-            let direction = file.read_u8().unwrap();
-            let offset = read_vector_3(&mut file).unwrap(); // Model's origin relative to the thing's origin.
+            let meta_model: &Rc<MetaModel> = match meta_models_map.get(key.as_str()) {
+                Some(ref mm) => { mm },
+                None => { return Err((
+                    io::Error::new(
+                        io::ErrorKind::Other,
+                        format!("{} referenced model {}, which doesn't exist.", path.display(), key)
+                    ),
+                    file!(), line!()
+                )); }
+            };
+            let meta_model = meta_model.clone();
+            let direction = tryln!(file.read_u8());
+            let offset = tryln!(read_vector_3(&mut file)); // Model's origin relative to the thing's origin.
             models.push(ModelInclusion {
                 meta_model: meta_model, direction: direction, offset: offset
             });
@@ -58,19 +61,23 @@ impl MetaThing {
         })
     }
     
-    pub fn load_dir(meta_models_map: &MetaModelsMap, path: &Path) -> Result<MetaThingsMap, String> {
+    pub fn load_dir(meta_models_map: &MetaModelsMap, path: &Path) -> Result<MetaThingsMap, IoErrorLine> {
         let mut map: MetaThingsMap = HashMap::new();
-        for entry in fs::walk_dir(path).unwrap() {
+        let walk = tryln!(fs::walk_dir(path));
+        for entry in walk {
             let path: &PathBuf = &entry.unwrap().path();
-            if path.ends_with(".thing") {
-                let result = MetaThing::from_file(meta_models_map, path);
-                match result {
-                    Ok(mt) => {
-                        let key = format!("{}-{}", mt.author_name(), mt.thing_name());
-                        map.insert(key, Rc::new(mt));
-                    },
-                    Err(string) => { return Err(string); }
+            match path.extension() {
+                Some(os_str) if os_str == "thing" => {
+                    let result = MetaThing::from_file(meta_models_map, path);
+                    match result {
+                        Ok(mt) => {
+                            let key = format!("{}-{}", mt.author_name(), mt.thing_name());
+                            map.insert(key, Rc::new(mt));
+                        },
+                        Err(string) => { return Err(string); }
+                    }
                 }
+                _ => ()
             }
         }
         Ok(map)

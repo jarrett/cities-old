@@ -3,6 +3,7 @@ use std::rc::Rc;
 use std::fs::File;
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
+use std::io;
 use byteorder::{ReadBytesExt, WriteBytesExt, BigEndian};
 use num::integer::Integer;
 use cgmath::Point3;
@@ -140,9 +141,14 @@ impl World {
         let mut indexed_meta_things: Vec<Rc<MetaThing>> = Vec::with_capacity(meta_thing_count as usize);        
         for _ in 0u32..meta_thing_count {
             let meta_thing_name = tryln!(read_string_16(&mut file));
-            let meta_thing: Rc<MetaThing> = meta_things_map.get(&meta_thing_name).unwrap().clone();
-            indexed_meta_things.push(meta_thing);
-            
+            let meta_thing: Rc<MetaThing> = match meta_things_map.get(&meta_thing_name) {
+                Some(meta_thing) => { meta_thing.clone() },
+                None => { return Err((
+                    io::Error::new(io::ErrorKind::Other, format!("Could not find meta thing: {}", &meta_thing_name)),
+                    file!(), line!()
+                )); }
+            };
+            indexed_meta_things.push(meta_thing);   
         }
         
         // Read things.
@@ -203,7 +209,13 @@ impl World {
         tryln!(file.write_u32::<BigEndian>(self.things.len() as u32)); // Number of things.
         for thing in self.things.iter() {
             let meta_thing: &MetaThing = &thing.meta_thing;
-            let meta_thing_index: u32 = *hash_map.get(&meta_thing.full_name()).unwrap();
+            let meta_thing_index: u32 = match hash_map.get(&meta_thing.full_name()) {
+                Some(idx) => { *idx },
+                None => { return Err((
+                    io::Error::new(io::ErrorKind::Other, format!("Could not find meta thing: {}", &meta_thing.full_name())),
+                    file!(), line!()
+                )); }
+            };
             tryln!(file.write_u32::<BigEndian>(meta_thing_index));
             tryln!(file.write_u8(thing.direction));
             tryln!(write_point_3(&mut file, &thing.position));

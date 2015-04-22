@@ -36,7 +36,7 @@ impl Program {
         Program {
             id:             id,
             
-            model_view_idx: glutil::get_uniform_location(id, "model"),
+            model_view_idx: glutil::get_uniform_location(id, "modelView"),
             projection_idx: glutil::get_uniform_location(id, "projection"),
             
             underwater_idx: glutil::get_uniform_location(id, "underwater"),

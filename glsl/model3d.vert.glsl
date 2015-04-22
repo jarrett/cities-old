@@ -1,6 +1,6 @@
 #version 330
 
-uniform mat4 model;
+uniform mat4 modelView;
 uniform mat4 projection;
 
 // The camera's viewing direction.
@@ -43,7 +43,7 @@ void main() {
                        sin(theta), cos(theta),      0, 0,
                        0,          0,               1, 0,
                        0,          0,               0, 1);
-  gl_Position = projection * model * ((rotateZ * vec4(position, 1.0)) + vec4(origin, 1.0));
+  gl_Position = projection * modelView * ((rotateZ * vec4(position, 1.0)) + vec4(origin, 1.0));
   
   vUV = uv;
 }

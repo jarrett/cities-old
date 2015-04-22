@@ -11,6 +11,7 @@ use libc::{c_void};
 use cgmath::{Vector, Vector2};
 
 use super::{WidthHeight, Packed, pack_some, sort_for_packing, Config};
+use futil::IoErrorLine;
 
 pub struct Spritesheet {
     pub width: u32,
@@ -70,15 +71,19 @@ impl Spritesheet {
         sheet
     }
     
-    pub fn load_dir(width: u32, height: u32, path: &Path, config: &Config) -> Spritesheet {
+    pub fn load_dir(width: u32, height: u32, path: &Path, config: &Config) -> Result<Spritesheet, IoErrorLine> {
         let mut image_paths: Vec<PathBuf> = Vec::new();
-        for path in fs::walk_dir(path).unwrap() {
-            let path: &PathBuf = &path.unwrap().path();
-            if path.ends_with(".png") {
-                image_paths.push(path.clone());
+        let walk = tryln!(fs::walk_dir(path));
+        for entry in walk {
+            let path: &PathBuf = &entry.unwrap().path();
+            match path.extension() {
+                Some(os_str) if os_str == "png" => {
+                    image_paths.push(path.clone());
+                },
+                _ => ()
             }
         }
-        Spritesheet::new(width, height, &image_paths, config)
+        Ok(Spritesheet::new(width, height, &image_paths, config))
     }
     
     // Takes a list of images left to pack. Creates a new OpenGL texture and pushes its

@@ -14,7 +14,7 @@ pub struct AxisIndicator {
     pub element_array_buffer: GLuint,
     pub vao: GLuint,
     
-    pub model_idx: GLint,
+    pub model_view_idx: GLint,
     pub projection_idx: GLint,
     pub scale_idx: GLint
 }
@@ -23,14 +23,14 @@ impl AxisIndicator {
     pub fn new() -> AxisIndicator {
         let mut ai = AxisIndicator {
             program: 0, array_buffer: 0, element_array_buffer: 0, vao: 0,
-            model_idx: 0, projection_idx: 0, scale_idx: 0
+            model_view_idx: 0, projection_idx: 0, scale_idx: 0
         };
         
         ai.program = glutil::make_program(&Path::new("glsl/axis-indicator.vert.glsl"), &Path::new("glsl/axis-indicator.frag.glsl"));
         
         let position_idx  = glutil::get_attrib_location( ai.program, "position");
         let color_idx     = glutil::get_attrib_location( ai.program, "color");
-        ai.model_idx      = glutil::get_uniform_location(ai.program, "model");
+        ai.model_view_idx = glutil::get_uniform_location(ai.program, "modelView");
         ai.projection_idx = glutil::get_uniform_location(ai.program, "projection");
         ai.scale_idx      = glutil::get_uniform_location(ai.program, "scale");
         
@@ -102,7 +102,7 @@ impl AxisIndicator {
             gl::BindBuffer(gl::ARRAY_BUFFER, self.array_buffer);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.element_array_buffer);
             gl::UseProgram(self.program);
-            gl::UniformMatrix4fv(self.model_idx, 1, gl::FALSE, mem::transmute(&camera.model_view));
+            gl::UniformMatrix4fv(self.model_view_idx, 1, gl::FALSE, mem::transmute(&camera.model_view));
             gl::UniformMatrix4fv(self.projection_idx, 1, gl::FALSE, mem::transmute(&camera.projection));
             gl::Uniform1f(self.scale_idx, scale);
             gl::DrawElements(gl::LINES, 6, gl::UNSIGNED_BYTE, ptr::null::<c_void>() as *const c_void);
