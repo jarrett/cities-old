@@ -3,6 +3,7 @@ use std::rc::Rc;
 use std::fs::File;
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
+use byteorder::{ReadBytesExt, WriteBytesExt, BigEndian};
 use num::integer::Integer;
 use cgmath::Point3;
 
@@ -120,22 +121,22 @@ impl World {
         let mut file = tryln!(File::open(path));
         
         // Read header.
-        tryln!(file.read_be_u16());        // Header size.
-        tryln!(file.read_be_u16());        // Version.
+        tryln!(file.read_u16::<BigEndian>());        // Header size.
+        tryln!(file.read_u16::<BigEndian>());        // Version.
         let name: String = tryln!(read_string_16(&mut file)); // World name.
         
         // Read terrain.
-        tryln!(file.read_be_u32()); // Terrain size.
+        tryln!(file.read_u32::<BigEndian>()); // Terrain size.
         tryln!(file.read_u8());   // Terrain storage method.
         let terrain_path = tryln!(read_string_16(&mut file));
-        let terrain_path = Path::new(terrain_path);
-        let z_scale: f32 = tryln!(file.read_be_f32());
-        let terrain_source = terrain::source::ImageSource::new(terrain_path, z_scale);
+        let terrain_path = Path::new(terrain_path.as_str());
+        let z_scale: f32 = tryln!(file.read_f32::<BigEndian>());
+        let terrain_source = terrain::source::ImageSource::new(&terrain_path, z_scale);
         let mut world = World::new(name, terrain_source, terrain_program, water_program, chunk_x_verts, chunk_y_verts);
         
         // Read meta things table.
-        tryln!(file.read_be_u32()); // Table size.
-        let meta_thing_count = tryln!(file.read_be_u32());
+        tryln!(file.read_u32::<BigEndian>()); // Table size.
+        let meta_thing_count = tryln!(file.read_u32::<BigEndian>());
         let mut indexed_meta_things: Vec<Rc<MetaThing>> = Vec::with_capacity(meta_thing_count as usize);        
         for _ in 0u32..meta_thing_count {
             let meta_thing_name = tryln!(read_string_16(&mut file));
@@ -145,15 +146,15 @@ impl World {
         }
         
         // Read things.
-        tryln!(file.read_be_u32()); // Things section size.
-        let thing_count = tryln!(file.read_be_u32());
+        tryln!(file.read_u32::<BigEndian>()); // Things section size.
+        let thing_count = tryln!(file.read_u32::<BigEndian>());
         for _ in 0u32..thing_count {
-            let meta_thing_index = tryln!(file.read_be_u32());
+            let meta_thing_index = tryln!(file.read_u32::<BigEndian>());
             let meta_thing = &indexed_meta_things[meta_thing_index as usize];
             let direction = tryln!(file.read_u8());
             let position = tryln!(read_point_3(&mut file));
             let thing = Thing::new(meta_thing, &position, direction);
-            tryln!(file.read_be_u32()); // Size of reserved section.
+            tryln!(file.read_u32::<BigEndian>()); // Size of reserved section.
             world.things.push(Rc::new(thing));
         }
         Ok(world)
@@ -163,16 +164,16 @@ impl World {
         let mut file = tryln!(File::create(path));
         
         // Write header;
-        tryln!(file.write_be_u16(48 + self.name.len() as u16)); // Header size.
-        tryln!(file.write_be_u16(0)); // Version.
+        tryln!(file.write_u16::<BigEndian>(48 + self.name.len() as u16)); // Header size.
+        tryln!(file.write_u16::<BigEndian>(0)); // Version.
         tryln!(write_string_16(&mut file, &self.name));
         
         // Write terrain.
         let terrain_path: String = format!("assets/height/{}.png", &self.name);
-        tryln!(file.write_be_u32(56 + terrain_path.len() as u32)); // Terrain section size.
+        tryln!(file.write_u32::<BigEndian>(56 + terrain_path.len() as u32)); // Terrain section size.
         tryln!(file.write_u8(0)); // Terrain storage method.
         tryln!(write_string_16(&mut file, &terrain_path));
-        tryln!(file.write_be_f32(0.1)); // FIXME. Make this value dynamic?
+        tryln!(file.write_f32::<BigEndian>(0.1)); // FIXME. Make this value dynamic?
         
         // Build a hash set representing the list of unique meta things in this world.
         let mut hash_set: HashSet<String> = HashSet::new();
@@ -186,8 +187,8 @@ impl World {
         for meta_thing_name in hash_set.iter() {
             section_size = section_size + 2 + meta_thing_name.len() as u32;
         }
-        tryln!(file.write_be_u32(section_size)); // Section size.
-        tryln!(file.write_be_u32(hash_set.len() as u32)); // Number of meta things.
+        tryln!(file.write_u32::<BigEndian>(section_size)); // Section size.
+        tryln!(file.write_u32::<BigEndian>(hash_set.len() as u32)); // Number of meta things.
         
         // Write each of the unique meta things to the table. Also build a map from
         // the meta thing to its index. We'll use that later when we write the things.
@@ -198,15 +199,15 @@ impl World {
         }
         
         // Write the header data for the things list. (Section size, number of things.)
-        tryln!(file.write_be_u32(8 + 21 * self.things.len() as u32)); // Section size.
-        tryln!(file.write_be_u32(self.things.len() as u32)); // Number of things.
+        tryln!(file.write_u32::<BigEndian>(8 + 21 * self.things.len() as u32)); // Section size.
+        tryln!(file.write_u32::<BigEndian>(self.things.len() as u32)); // Number of things.
         for thing in self.things.iter() {
             let meta_thing: &MetaThing = &thing.meta_thing;
             let meta_thing_index: u32 = *hash_map.get(&meta_thing.full_name()).unwrap();
-            tryln!(file.write_be_u32(meta_thing_index));
+            tryln!(file.write_u32::<BigEndian>(meta_thing_index));
             tryln!(file.write_u8(thing.direction));
             tryln!(write_point_3(&mut file, &thing.position));
-            tryln!(file.write_be_u32(0)); // Size of reserved section.
+            tryln!(file.write_u32::<BigEndian>(0)); // Size of reserved section.
         }
         
         Ok(())

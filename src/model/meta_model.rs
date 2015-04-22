@@ -5,6 +5,7 @@ use std::path::Path;
 use libc::{c_void};
 use std::rc::Rc;
 use std::collections::HashMap;
+use byteorder::{ReadBytesExt, BigEndian};
 use cgmath::*;
 use gl;
 use gl::types::*;
@@ -34,18 +35,18 @@ impl MetaModel {
         let mut file = File::open(path).unwrap();
         
         // Read header.
-        file.read_be_u16().unwrap(); // Header size.
-        file.read_be_u16().unwrap(); // Version.
+        file.read_u16::<BigEndian>().unwrap(); // Header size.
+        file.read_u16::<BigEndian>().unwrap(); // Version.
         let shape = file.read_u8().unwrap();
         file.read_u8().unwrap(); // Image embedded.
         let author_name = read_string_16(&mut file).unwrap();
         let model_name = read_string_16(&mut file).unwrap();
         
         // Read geometry.
-        file.read_be_u16().unwrap(); // Geometry section size.
-        let x_size = file.read_be_f32().unwrap();
-        let y_size = file.read_be_f32().unwrap();
-        let z_size = file.read_be_f32().unwrap();
+        file.read_u16::<BigEndian>().unwrap(); // Geometry section size.
+        let x_size = file.read_f32::<BigEndian>().unwrap();
+        let y_size = file.read_f32::<BigEndian>().unwrap();
+        let z_size = file.read_f32::<BigEndian>().unwrap();
         let mut uvs = Vec::with_capacity(8);
         let mut sprites = Vec::with_capacity(8);
         for direction in 0u8..8u8 {
@@ -54,7 +55,7 @@ impl MetaModel {
             let sprite = spritesheet.by_name.get(&sprite_name).expect(format!(
                 "Texture not found for {}. Known textures: {}",
                 sprite_name, spritesheet.format_all()
-            ).as_slice()).clone();
+            ).as_str()).clone();
             sprites.push(sprite);
         }
         
@@ -68,14 +69,12 @@ impl MetaModel {
     pub fn load_dir(path: &Path, buffers: &mut Buffers, spritesheet: &Spritesheet) -> MetaModelsMap {
         let mut map: MetaModelsMap = HashMap::new();
         for path in fs::walk_dir(path).unwrap() {
-            match path.extension_str() {
-                Some("model") => {
-                    let mut mm = MetaModel::from_file(&path, spritesheet);
-                    mm.buffer(buffers);
-                    let key = format!("{}-{}", mm.author_name(), mm.model_name());
-                    map.insert(key, Rc::new(mm));
-                },
-                _ => {}
+            let path: &Path = path.unwrap().path().as_path();
+            if path.ends_with(".model") {
+                let mut mm = MetaModel::from_file(path, spritesheet);
+                mm.buffer(buffers);
+                let key = format!("{}-{}", mm.author_name(), mm.model_name());
+                map.insert(key, Rc::new(mm));
             }
         }
         map

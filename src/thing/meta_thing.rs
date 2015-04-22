@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::fs;
 use std::result::Result;
+use byteorder::{ReadBytesExt, BigEndian};
 use cgmath::Vector3;
 use futil::{read_string_16, read_vector_3};
 
@@ -22,21 +23,21 @@ impl MetaThing {
         let mut file = File::open(path).unwrap();
         
         // Read header.
-        file.read_be_u16().unwrap(); // Header size.
-        file.read_be_u16().unwrap(); // Version.
+        file.read_u16::<BigEndian>().unwrap(); // Header size.
+        file.read_u16::<BigEndian>().unwrap(); // Version.
         let author_name = read_string_16(&mut file).unwrap();
         let thing_name = read_string_16(&mut file).unwrap();
         file.read_u8().unwrap(); // Config key size.
         
         // Read models.
-        file.read_be_u32().unwrap(); // Size of models section.
-        let model_count = file.read_be_u16().unwrap();
+        file.read_u32::<BigEndian>().unwrap(); // Size of models section.
+        let model_count = file.read_u16::<BigEndian>().unwrap();
         let mut models: Vec<ModelInclusion> = Vec::with_capacity(model_count as usize);
         for _ in 0u16..model_count {
             let author_name = read_string_16(&mut file).unwrap();
             let model_name = read_string_16(&mut file).unwrap();
             let key: String = format!("{}-{}", author_name, model_name);
-            let meta_model: Option<&Rc<MetaModel>> = meta_models_map.get(key.as_slice());
+            let meta_model: Option<&Rc<MetaModel>> = meta_models_map.get(key.as_str());
             if meta_model.is_none() {
                 let known_models = ""; // FIXME
                 return Err(format!(
@@ -60,18 +61,16 @@ impl MetaThing {
     pub fn load_dir(meta_models_map: &MetaModelsMap, path: &Path) -> Result<MetaThingsMap, String> {
         let mut map: MetaThingsMap = HashMap::new();
         for path in fs::walk_dir(path).unwrap() {
-            match path.extension_str() {
-                Some("thing") => {
-                    let result = MetaThing::from_file(meta_models_map, &path);
-                    match result {
-                        Ok(mt) => {
-                            let key = format!("{}-{}", mt.author_name(), mt.thing_name());
-                            map.insert(key, Rc::new(mt));
-                        },
-                        Err(string) => { return Err(string); }
-                    }
-                },
-                _ => {}
+            let path: &Path = path.unwrap().path().as_path();
+            if path.ends_with(".thing") {
+                let result = MetaThing::from_file(meta_models_map, path);
+                match result {
+                    Ok(mt) => {
+                        let key = format!("{}-{}", mt.author_name(), mt.thing_name());
+                        map.insert(key, Rc::new(mt));
+                    },
+                    Err(string) => { return Err(string); }
+                }
             }
         }
         Ok(map)

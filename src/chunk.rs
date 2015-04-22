@@ -41,6 +41,12 @@ pub struct Chunk {
     depths_buffered:          bool
 }
 
+pub struct Quads<'a> {
+    x: u32,
+    y: u32,
+    chunk: &'a Chunk
+}
+
 impl Chunk {
     pub fn new(
         terrain_program: &terrain::Program, water_program: &water::Program,
@@ -395,19 +401,6 @@ impl Chunk {
             gl::BindVertexArray(0);
         }
     }
-    
-    pub fn each_quad(&self, callback: FnOnce(Quad)) {
-        for y in 0u32..self.y_size {
-            for x in 0u32..self.x_size {
-                callback((
-                    self.terrain_positions[self.vi(x    , y    )],
-                    self.terrain_positions[self.vi(x + 1, y    )],
-                    self.terrain_positions[self.vi(x + 1, y + 1)],
-                    self.terrain_positions[self.vi(x    , y + 1)]
-                ));
-            }
-        }
-    }
 }
 
 impl Drop for Chunk {
@@ -421,5 +414,34 @@ impl Drop for Chunk {
             gl::DeleteBuffers(1,      &self.water_depth_buffer);
             gl::DeleteVertexArrays(1, &self.water_vao);
         }
+    }
+}
+
+impl<'a> Quads<'a> {
+    pub fn new(chunk: &Chunk) -> Quads {
+        Quads { chunk: chunk, x: 0, y: 0 }
+    }
+}
+
+impl<'a> Iterator for Quads<'a> {
+    type Item = Quad;
+    
+    fn next(&mut self) -> Option<Quad> {
+        if self.x == self.chunk.x_size - 1 {
+            if self.y == self.chunk.y_size - 1 {
+                return None;
+            } else {
+                self.x = 0;
+                self.y = self.y + 1;
+            }
+        } else {
+            self.x = self.x + 1
+        }
+        Some((
+            self.chunk.terrain_positions[self.chunk.vi(self.x    , self.y    )],
+            self.chunk.terrain_positions[self.chunk.vi(self.x + 1, self.y    )],
+            self.chunk.terrain_positions[self.chunk.vi(self.x + 1, self.y + 1)],
+            self.chunk.terrain_positions[self.chunk.vi(self.x    , self.y + 1)]
+        ))
     }
 }

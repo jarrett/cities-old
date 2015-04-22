@@ -15,7 +15,7 @@ pub struct ImageSource {
 }
 
 impl ImageSource {
-    pub fn new(path: Path, z_scale: f32) -> ImageSource {
+    pub fn new(path: &Path, z_scale: f32) -> ImageSource {
         let dyn_img: image::DynamicImage = image::open(&path).unwrap();       
         ImageSource { image: dyn_img, z_scale: z_scale }
     }

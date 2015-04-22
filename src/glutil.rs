@@ -1,4 +1,6 @@
 use std::fs::File;
+use std::io::Read;
+use std::error::Error;
 use std::str;
 use std::ffi::CString;
 use std::iter;
@@ -10,7 +12,7 @@ use libc;
 
 pub fn get_attrib_location(program: GLuint, name: &str) -> GLuint {
     unsafe {
-        let c_str = CString::from_slice(name.as_bytes());
+        let c_str = CString::new(name).unwrap();
         let loc: GLint = gl::GetAttribLocation(program, c_str.as_ptr());
         if loc == -1 {
           panic!("Could not find attribute \"{}\"", name);
@@ -23,7 +25,7 @@ pub fn get_attrib_location(program: GLuint, name: &str) -> GLuint {
 // See e.g. glUniform.
 pub fn get_uniform_location(program: GLuint, name: &str) -> GLint {
     unsafe {
-        let c_str = CString::from_slice(name.as_bytes());
+        let c_str = CString::new(name).unwrap();
         let loc: GLint = gl::GetUniformLocation(program, c_str.as_ptr());
         if loc == -1 {
           panic!("Could not find uniform \"{}\"", name);
@@ -46,7 +48,7 @@ pub fn make_program(vert_path: &Path, frag_path: &Path) -> GLuint {
             let mut log_length: GLint = 0;
             gl::GetProgramiv(program, gl::INFO_LOG_LENGTH, &mut log_length);
             let s: String = iter::repeat(' ').take(log_length as usize).collect();
-            let c_str: CString = CString::from_slice(s.as_bytes());
+            let c_str: CString = CString::new(s.as_str()).unwrap();
             gl::GetProgramInfoLog(
                 program,
                 log_length,
@@ -66,16 +68,17 @@ pub fn make_shader(path: &Path, shader_type: GLenum) -> GLuint {
     
         // Open the file for reading.
         let mut file: File = match File::open(path) {
-            Err(why) => panic!("Couldn't open {}: {}", display, why.desc),
+            Err(why) => panic!("Couldn't open {}: {}", display, why.description()),
             Ok(file) => file,
         };
     
         // Read the file into a C string.
-        let source: String = match file.read_to_string() {
-            Err(why) => panic!("couldn't read {}: {}", display, why.desc),
-            Ok(string) => string
+        let mut source: String = String::new();
+        match file.read_to_string(&mut source) {
+            Err(why) => panic!("couldn't read {}: {}", display, why.description()),
+            _ => {}
         };
-        let src_c_str: CString = CString::from_slice(source.as_bytes());
+        let src_c_str: CString = CString::new(source.as_str()).unwrap();
     
         // Create and compile the shader.
         let shader: GLuint = gl::CreateShader(shader_type);
@@ -94,7 +97,7 @@ pub fn make_shader(path: &Path, shader_type: GLenum) -> GLuint {
           let mut log_length: GLint = 0;
           gl::GetShaderiv(shader, gl::INFO_LOG_LENGTH, &mut log_length);
           let s: String = iter::repeat(' ').take(log_length as usize).collect();
-          let c_str: CString = CString::from_slice(s.as_bytes());
+          let c_str: CString = CString::new(s.as_str()).unwrap();
           gl::GetShaderInfoLog(
             shader,
             log_length,

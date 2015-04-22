@@ -73,11 +73,11 @@ impl Spritesheet {
     pub fn load_dir(width: u32, height: u32, path: &Path, config: &Config) -> Spritesheet {
         let mut image_paths = Vec::new();
         for path in fs::walk_dir(path).unwrap() {
-            match path.extension_str() {
+            match path.unwrap().extension_str() {
                 Some("png") => {
                     image_paths.push(path.clone());
                 },
-                _ => {}
+                None => {}
             }
         }
         Spritesheet::new(width, height, &image_paths, config)

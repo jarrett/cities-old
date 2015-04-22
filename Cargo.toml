@@ -18,3 +18,9 @@ git = "https://github.com/bjz/cgmath-rs.git"
 
 [dependencies.image]
 git = "https://github.com/PistonDevelopers/image"
+
+[dependencies]
+libc = "*"
+
+[dependencies]
+byteorder = "*"
