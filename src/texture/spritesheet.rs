@@ -10,7 +10,7 @@ use image::{GenericImage, DynamicImage, RgbaImage};
 use libc::{c_void};
 use cgmath::{Vector, Vector2};
 
-use super::{WidthHeight, Packed, pack_some, sort_for_packing, Config};
+use super::{WidthHeight, pack_some, sort_for_packing, Config};
 use futil::IoErrorLine;
 
 pub struct Spritesheet {

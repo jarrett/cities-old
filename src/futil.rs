@@ -4,10 +4,7 @@ use cgmath::{Point, Point2, Point3, Vector2, Vector3};
 use std::fs::File;
 use std::io;
 use std::io::{Read, Write};
-use std::convert::From;
-use std::string::FromUtf8Error;
 use byteorder::{ReadBytesExt, WriteBytesExt, BigEndian};
-use byteorder;
 
 #[allow(dead_code)]
 pub fn read_string_16(file: &mut File) -> Result<String, io::Error> {
@@ -66,11 +63,6 @@ pub fn write_point_3(file: &mut File, v: &Point3<f32>) -> Result<(), io::Error> 
     try!(file.write_f32::<BigEndian>(v.y));
     try!(file.write_f32::<BigEndian>(v.z));
     Ok(())
-}
-
-// Consumes a FromUtf8Error, returning a new io::Error.
-fn from_utf8_error_into_io_error(_: FromUtf8Error) -> io::Error {
-    io::Error::new(io::ErrorKind::Other, "UTF-8 error")
 }
 
 pub type IoErrorLine = (io::Error, &'static str, u32);

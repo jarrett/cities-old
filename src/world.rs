@@ -166,6 +166,7 @@ impl World {
         Ok(world)
     }
     
+    #[allow(dead_code)]
     pub fn to_file(&self, path: &Path) -> Result<(), IoErrorLine> {
         let mut file = tryln!(File::create(path));
         
@@ -274,4 +275,12 @@ impl World {
             }
         }
     }
+    
+    pub fn min_x(&self) -> f32 { 0.0 }
+    
+    pub fn min_y(&self) -> f32 { 0.0 }
+    
+    pub fn max_x(&self) -> f32 { self.x_size as f32 }
+    
+    pub fn max_y(&self) -> f32 { self.y_size as f32 }
 }

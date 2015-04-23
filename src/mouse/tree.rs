@@ -1,7 +1,8 @@
-use cgmath::{Aabb, Aabb3, Vector3};
+use cgmath::{Aabb, Aabb3};
 
+use world::World;
 use chunk::Chunk;
-use math::{Triangle, split_aabb3_for_quadtree, aabb3_contains_aabb3, quad_to_tris};
+use math::{Triangle, split_aabb3_for_quadtree, aabb3_contains_aabb3, aabb3_from_tris, quad_to_tris};
 use super::target::Target;
 
 pub struct Tree {
@@ -21,6 +22,24 @@ pub struct Children {
 impl Tree {
     pub fn new(size: u32, bb: Aabb3<f32>) -> Tree {
         Tree { size: size, bb: bb, targets: Vec::with_capacity(2), children: None }
+    }
+    
+    pub fn add_chunk(&mut self, chunk: &Chunk) {
+        for quad in chunk.quads() {
+            let (tri1, tri2): (Triangle, Triangle) = quad_to_tris(quad);
+            let bb: Aabb3<f32> = aabb3_from_tris(&tri1, &tri2);
+            self.insert(
+                Target::Ground(bb, tri1, tri2)
+            );
+        }
+    }
+    
+    pub fn add_chunks_from_world(&mut self, world: &World) {
+        for row in world.chunks.iter() {
+            for chunk in row.iter() {
+                self.add_chunk(&chunk.borrow());
+            }
+        }
     }
     
     pub fn build(&mut self) {

@@ -28,7 +28,6 @@ mod model;
 mod mouse;
 
 use std::default::Default;
-use std::rc::Rc;
 use std::cmp;
 use std::path::Path;
 use cgmath::*;
@@ -39,7 +38,7 @@ use camera::Camera;
 use axis_indicator::AxisIndicator;
 use world::World;
 use model::MetaModel;
-use thing::{Thing, MetaThing, ZSorted};
+use thing::{MetaThing, ZSorted};
 use texture::Spritesheet;
 
 fn main() {
@@ -132,6 +131,13 @@ fn main() {
     }*/
     
     let z_sorted = ZSorted::new(&world.things, &mut camera);
+    
+    let mut mouse_tree = mouse::Tree::new(128, Aabb3::new(
+        Point3::new(world.min_x(), world.min_y(), 0.0),
+        Point3::new(world.max_x(), world.max_y(), 0.0)
+    ));
+    mouse_tree.build();
+    mouse_tree.add_chunks_from_world(&world);
     
     let mut q_down = false;
     let mut e_down = false;

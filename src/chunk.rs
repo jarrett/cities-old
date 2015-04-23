@@ -401,6 +401,10 @@ impl Chunk {
             gl::BindVertexArray(0);
         }
     }
+    
+    pub fn quads(&self) -> Quads {
+        Quads::new(self)
+    }
 }
 
 impl Drop for Chunk {
