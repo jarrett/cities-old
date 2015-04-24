@@ -35,6 +35,7 @@ use cgmath::*;
 use glfw::{Context, Action, Key};
 use gl::types::*;
 
+use math::PLine3;
 use camera::Camera;
 use axis_indicator::AxisIndicator;
 use world::World;
@@ -153,7 +154,11 @@ fn main() {
         let (width, height) = window.get_size();
         camera.resize(width as u16, height as u16);
         
-        //let mouse_target = mouse_tree.intersects_line3(&mouse_line);
+        let (mouse_x, mouse_y) = window.get_cursor_pos();
+        let mouse_line: PLine3 = camera.unproject(Point2::new(mouse_x as f32, mouse_y as f32));
+        let mouse_hit: Option<mouse::Hit> = mouse_tree.intersects_pline3(&mouse_line, &camera);
+        println!("mouse line: {:?}", mouse_line);
+        //println!("target: {:?}", mouse_hit);
         
         unsafe {
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);

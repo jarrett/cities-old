@@ -2,12 +2,14 @@ use cgmath::{Aabb3, Point3};
 
 use math::{PLine3, Triangle};
 
+#[derive(Debug)]
 pub enum Target {
     Ground(Aabb3<f32>, Triangle, Triangle),
     //Water(Aabb3<f32>),
     //Thing(Aabb3<f32>, Rc<RefCell<Thing>>)
 }
 
+#[derive(Debug)]
 pub struct Hit<'a> {
     target: &'a Target,
     at: Point3<f32>

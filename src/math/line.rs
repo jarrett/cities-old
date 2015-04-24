@@ -1,6 +1,7 @@
 use cgmath::{Point3, Line3};
 
 // A line in parametric form.
+#[derive(Debug, PartialEq)]
 pub struct PLine3 {
     pub origin: Point3<f32>,
     pub dx: f32,
@@ -18,18 +19,22 @@ impl PLine3 {
         }
     }
     
+    #[allow(dead_code)]
     pub fn at(&self, t: f32) -> Point3<f32> {
         Point3 {x: self.x(t), y: self.y(t), z: self.z(t)}
     }
     
+    #[allow(dead_code)]
     pub fn x(&self, t: f32) -> f32 {
         self.dx * t + self.origin.x
     }
     
+    #[allow(dead_code)]
     pub fn y(&self, t: f32) -> f32 {
         self.dy * t + self.origin.y
     }
     
+    #[allow(dead_code)]
     pub fn z(&self, t: f32) -> f32 {
         self.dz * t + self.origin.z
     }
