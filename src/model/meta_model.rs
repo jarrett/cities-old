@@ -32,7 +32,7 @@ pub struct MetaModel {
 }
 
 impl MetaModel {
-    pub fn from_file(path: &Path, spritesheet: &Spritesheet) -> Result<MetaModel, IoErrorLine> {
+    pub fn from_file(path: &Path, opt_spritesheet: Option<&Spritesheet>) -> Result<MetaModel, IoErrorLine> {
         let mut file = tryln!(File::open(path));
         
         // Read header.
@@ -48,22 +48,29 @@ impl MetaModel {
         let x_size = tryln!(file.read_f32::<BigEndian>());
         let y_size = tryln!(file.read_f32::<BigEndian>());
         let z_size = tryln!(file.read_f32::<BigEndian>());
+        
+        // Maybe read sprites.
         let mut uvs = Vec::with_capacity(8);
         let mut sprites = Vec::with_capacity(8);
         for direction in 0u8..8u8 {
             uvs.push(UvsForDirection::from_file(&mut file));
-            let sprite_name: String = format!("{}-{}-{}", author_name, model_name, direction);
-            let sprite: Rc<Sprite> = match spritesheet.by_name.get(sprite_name.as_str()) {
-                Some(rc_sprite)  => { rc_sprite.clone() }
-                None => { return Err((
-                    io::Error::new(io::ErrorKind::Other, format!(
-                        "Texture not found for {}. Known textures: {}",
-                        sprite_name, spritesheet.format_all()
-                    )),
-                    file!(), line!()
-                )); }
-            };
-            sprites.push(sprite);
+            match opt_spritesheet {
+                Some(spritesheet) => {
+                    let sprite_name: String = format!("{}-{}-{}", author_name, model_name, direction);
+                    let sprite: Rc<Sprite> = match spritesheet.by_name.get(sprite_name.as_str()) {
+                        Some(rc_sprite)  => { rc_sprite.clone() }
+                        None => { return Err((
+                            io::Error::new(io::ErrorKind::Other, format!(
+                                "Texture not found for {}. Known textures: {}",
+                                sprite_name, spritesheet.format_all()
+                            )),
+                            file!(), line!()
+                        )); }
+                    };
+                    sprites.push(sprite);
+                },
+                None => ()
+            }
         }
         
         Ok(MetaModel {
@@ -80,7 +87,7 @@ impl MetaModel {
             let path: &PathBuf = &entry.unwrap().path();
             match path.extension() {
                 Some(os_str) if os_str == "model" => {
-                    let mut mm: MetaModel = try!(MetaModel::from_file(path, spritesheet));
+                    let mut mm: MetaModel = try!(MetaModel::from_file(path, Some(spritesheet)));
                     mm.buffer(buffers);
                     let key = format!("{}-{}", mm.author_name(), mm.model_name());
                     map.insert(key, Rc::new(mm));
@@ -201,32 +208,35 @@ impl MetaModel {
 
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
+    use std::default::Default;
+    use texture::Spritesheet;
     use super::MetaModel;
-    use assertions::*;
     
     #[test]
-    fn from_file() {
-        let meta_model: MetaModel = MetaModel::from_file(&Path::new(
-            "assets/models/jarrett-test.model"
-        ));
+    fn test_from_file() {
+        let meta_model: MetaModel = MetaModel::from_file(
+            &Path::new("assets/models/jarrett-test.model"),
+            None
+        ).unwrap();
         
         assert_eq!(&"jarrett".to_string(), &meta_model.author_name);
         assert_eq!(&"test".to_string(), &meta_model.model_name);
         assert_eq!(0, meta_model.shape);
-        assert_eq_f32(2.3520656824111940, meta_model.x_size);
-        assert_eq_f32(2.4116761684417725, meta_model.y_size);
-        assert_eq_f32(2.2839789390563965, meta_model.z_size);
+        assert_eq_f32!(2.3520656824111940, meta_model.x_size);
+        assert_eq_f32!(2.4116761684417725, meta_model.y_size);
+        assert_eq_f32!(2.2839789390563965, meta_model.z_size);
         assert_eq!(8, meta_model.uvs.len());
         
         // We spot-check the UV coordinates. There are 112 total floats comprising the
         // coords, so it's not practical to assert all of them here.
         
         // Direction 0, top-back.
-        assert_eq_f32(0.355713993310928340, meta_model.uvs[0].tb.x);
-        assert_eq_f32(0.009803906083106995, meta_model.uvs[0].tb.y);
+        assert_eq_f32!(0.355713993310928340, meta_model.uvs[0].tb.x);
+        assert_eq_f32!(0.009803906083106995, meta_model.uvs[0].tb.y);
         
         // Direction 2, bottom-left.
-        assert_eq_f32(0.009803935885429382, meta_model.uvs[2].bl.x);
-        assert_eq_f32(0.797001838684082000, meta_model.uvs[2].bl.y);
+        assert_eq_f32!(0.009803935885429382, meta_model.uvs[2].bl.x);
+        assert_eq_f32!(0.797001838684082000, meta_model.uvs[2].bl.y);
     }
 }

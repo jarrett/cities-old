@@ -104,13 +104,21 @@ struct ModelInclusion {
 mod tests {
     use std::rc::Rc;
     use std::collections::HashMap;
+    use std::path::Path;
+    use std::default::Default;
     use super::MetaThing;
-    use meta_model::MetaModel;
-    use meta_model::MetaModelsMap;
+    use model::MetaModel;
+    use model::MetaModelsMap;
+    use texture::Spritesheet;
     
     #[test]
-    fn from_file() {
-        let meta_model = Rc::new(MetaModel::from_file(&Path::new("assets/models/jarrett-test.model")));
+    fn test_from_file() {
+        let meta_model: Rc<MetaModel> = Rc::new(
+            MetaModel::from_file(
+                &Path::new("assets/models/jarrett-test.model"),
+                None
+            ).unwrap()
+        );
         let mut meta_models_map: MetaModelsMap = HashMap::new();
         meta_models_map.insert("jarrett-test".to_string(), meta_model);
         let meta_thing: MetaThing = MetaThing::from_file(

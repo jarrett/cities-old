@@ -1,3 +1,4 @@
+#![feature(core)]
 #![feature(collections)]
 #![feature(convert)]
 #![feature(fs_walk)]
@@ -11,8 +12,8 @@ extern crate libc;
 extern crate num;
 extern crate byteorder;
 
+mod macros;
 mod math;
-mod assertions;
 mod glutil;
 mod gldebug;
 mod futil;
@@ -151,6 +152,8 @@ fn main() {
     while !window.should_close() {
         let (width, height) = window.get_size();
         camera.resize(width as u16, height as u16);
+        
+        //let mouse_target = mouse_tree.intersects_line3(&mouse_line);
         
         unsafe {
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);

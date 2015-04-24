@@ -6,6 +6,8 @@ use std::io;
 use std::io::{Read, Write};
 use byteorder::{ReadBytesExt, WriteBytesExt, BigEndian};
 
+pub type IoErrorLine = (io::Error, &'static str, u32);
+
 #[allow(dead_code)]
 pub fn read_string_16(file: &mut File) -> Result<String, io::Error> {
     let length = try!(file.read_u16::<BigEndian>()) as usize;
@@ -63,14 +65,4 @@ pub fn write_point_3(file: &mut File, v: &Point3<f32>) -> Result<(), io::Error> 
     try!(file.write_f32::<BigEndian>(v.y));
     try!(file.write_f32::<BigEndian>(v.z));
     Ok(())
-}
-
-pub type IoErrorLine = (io::Error, &'static str, u32);
-
-macro_rules! tryln {
-    ($expr:expr) => (try!(
-        ($expr).map_err({ |e|
-            (From::from(e), file!(), line!())
-        })
-    ))
 }

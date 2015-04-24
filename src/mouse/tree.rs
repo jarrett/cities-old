@@ -1,9 +1,13 @@
 use cgmath::{Aabb, Aabb3};
 
+use camera::Camera;
 use world::World;
 use chunk::Chunk;
-use math::{Triangle, split_aabb3_for_quadtree, aabb3_contains_aabb3, aabb3_from_tris, quad_to_tris};
-use super::target::Target;
+use math::{
+    PLine3, Triangle, split_aabb3_for_quadtree, aabb3_contains_aabb3, aabb3_from_tris,
+    pline3_intersects_aabb3, quad_to_tris
+};
+use super::target::{Target, Hit};
 
 pub struct Tree {
     pub size: u32,
@@ -55,6 +59,11 @@ impl Tree {
         }
     }
     
+    fn expand_by(&mut self, bb: &Aabb3<f32>) {
+        self.bb.max.z = self.bb.max.z.max(bb.max.z);
+        self.bb.min.z = self.bb.min.z.min(bb.min.z);
+    }
+    
     pub fn insert(&mut self, target: Target) {
         self.expand_by(target.bb());
         match self.children {
@@ -77,8 +86,56 @@ impl Tree {
         }
     }
     
-    fn expand_by(&mut self, bb: &Aabb3<f32>) {
-        self.bb.max.z = self.bb.max.z.max(bb.max.z);
-        self.bb.min.z = self.bb.min.z.min(bb.min.z);
+    pub fn intersects_pline3(&self, line: &PLine3, camera: &Camera) -> Option<Hit> {
+        self.search(line).and_then(|mut targets| {
+            // Sort the list of possible targets by distance from camera.
+            targets.sort_by(|a, b| {
+                camera.distance_to(&a.bb().center()).partial_cmp(
+                &camera.distance_to(&b.bb().center())).unwrap()
+            });
+            
+            // Starting from the camera, work through the possible targets. Return as
+            // soon as we find a hit. If none of the targets was hit, return None.
+            targets.iter().filter_map(|target| {
+                target.intersects_pline3(line)
+            }).next()
+        })
+    }
+    
+    // Looks for possible mouse targets in this node and its children. If the line
+    // intersects this node's bounding box, returns a list of targets (which may be
+    // empty). Else, returns None.
+    // 
+    // This method is private because it's just a helper for intersects_line3.
+    fn search<'a>(&'a self, line: &PLine3) -> Option<Vec<&'a Target>> {
+        if pline3_intersects_aabb3(line, &self.bb) {
+            let mut found: Vec<&Target> = Vec::new();
+            
+            for target in self.targets.iter() {
+                if pline3_intersects_aabb3(line, target.bb()) {
+                    found.push(target);
+                }
+            }
+            
+            match self.children {
+                Some(ref c) => {
+                    self.search_quadrant(&mut found, &c.q1, line);
+                    self.search_quadrant(&mut found, &c.q2, line);
+                    self.search_quadrant(&mut found, &c.q3, line);
+                    self.search_quadrant(&mut found, &c.q4, line);
+                },
+                None => ()
+            }
+            Some(found)
+        } else {
+            None
+        }
+    }
+    
+    fn search_quadrant<'a>(&self, found: &mut Vec<&'a Target>, tree: &'a Tree, line: &PLine3) {
+        match tree.search(line) {
+            Some(mut targets) => { found.append(&mut targets); },
+            None => ()
+        }
     }
 }
