@@ -45,9 +45,9 @@ pub fn pline3_intersects_aabb3(line: &PLine3, bb: &Aabb3<f32>) -> bool {
     // is whether the line's constant value on that axis is inside or outside the slab.
     // (The slab is the set of points bounded by the box's min and max values
     // on that axis.)
-    if line.dx == 0.0 && !in_interval(line.origin.x, bb.min.x, bb.max.x) { return false; }
-    if line.dy == 0.0 && !in_interval(line.origin.y, bb.min.y, bb.max.y) { return false; }
-    if line.dz == 0.0 && !in_interval(line.origin.z, bb.min.z, bb.max.z) { return false; }
+    if line.dir.x == 0.0 && !in_interval(line.ori.x, bb.min.x, bb.max.x) { return false; }
+    if line.dir.y == 0.0 && !in_interval(line.ori.y, bb.min.y, bb.max.y) { return false; }
+    if line.dir.z == 0.0 && !in_interval(line.ori.z, bb.min.z, bb.max.z) { return false; }
     
     // We couldn't rule out an intersection based on the line being parallel to an axis.
     // Find the t values where the line intersects each plane of the bounding box. These

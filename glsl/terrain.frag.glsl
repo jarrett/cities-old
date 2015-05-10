@@ -19,6 +19,8 @@ uniform sampler2D plain;      // Texture for plain land.
 uniform sampler2D slope;      // Texture for sloping land. (But not as sloped as cliffs.)
 uniform sampler2D cliff;      // Texture for the most extreme slopes.
 
+uniform vec3 mouse;
+
 in vec3 vPosition;
 in vec3 vNormal;
 
@@ -125,5 +127,14 @@ void main() {
     texColor = landColor();
   }
   
-  outColor = vec4(ambientDiffuse() * texColor, 1.0);
+  // Ground color with lighting effects.
+  vec4 litGroundColor = vec4(ambientDiffuse() * texColor, 1.0);
+  
+  // The closer we are to the mouse, the more cursor color to mix in.
+  float cursorMix = smoothstep(
+    10.0, 0.0,
+    length(vPosition - mouse)
+  );
+  
+  outColor = mix(litGroundColor, vec4(0.0, 0.2, 1.0, 1.0), cursorMix);
 }

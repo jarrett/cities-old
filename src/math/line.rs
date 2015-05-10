@@ -1,21 +1,21 @@
-use cgmath::{Point3, Line3};
+use cgmath::{Point, Point3, Line3, Vector, EuclideanVector, Vector3};
 
 // A line in parametric form.
 #[derive(Debug, PartialEq)]
 pub struct PLine3 {
-    pub origin: Point3<f32>,
-    pub dx: f32,
-    pub dy: f32,
-    pub dz: f32
+    pub ori: Vector3<f32>,
+    pub dir: Vector3<f32>
 }
 
 impl PLine3 {
     pub fn new(p1: &Point3<f32>, p2: &Point3<f32>) -> PLine3 {
         PLine3 {
-            origin: p1.clone(),
-            dx: p2.x - p1.x,
-            dy: p2.y - p1.y,
-            dz: p2.z - p1.z
+            ori: p1.to_vec(),
+            dir: Vector3::new(
+                p2.x - p1.x,
+                p2.y - p1.y,
+                p2.z - p1.z
+            )
         }
     }
     
@@ -26,43 +26,48 @@ impl PLine3 {
     
     #[allow(dead_code)]
     pub fn x(&self, t: f32) -> f32 {
-        self.dx * t + self.origin.x
+        self.dir.x * t + self.ori.x
     }
     
     #[allow(dead_code)]
     pub fn y(&self, t: f32) -> f32 {
-        self.dy * t + self.origin.y
+        self.dir.y * t + self.ori.y
     }
     
     #[allow(dead_code)]
     pub fn z(&self, t: f32) -> f32 {
-        self.dz * t + self.origin.z
+        self.dir.z * t + self.ori.z
+    }
+    
+    #[allow(dead_code)]
+    pub fn normalize(&self) -> PLine3 {
+        PLine3 { ori: self.ori, dir: self.dir.normalize() }
     }
     
     // Returns a t value.
     pub fn where_x_eq(&self, x: f32) -> Option<f32> {
-        if self.dx == 0.0 {
+        if self.dir.x == 0.0 {
             None
         } else {
-            Some((x - self.origin.x) / self.dx)
+            Some((x - self.ori.x) / self.dir.x)
         }
     }
     
     // Returns a t value.
     pub fn where_y_eq(&self, y: f32) -> Option<f32> {
-        if self.dy == 0.0 {
+        if self.dir.y == 0.0 {
             None
         } else {
-            Some((y - self.origin.y) / self.dy)
+            Some((y - self.ori.y) / self.dir.y)
         }
     }
     
     // Returns a t value.
     pub fn where_z_eq(&self, z: f32) -> Option<f32> {
-        if self.dz == 0.0 {
+        if self.dir.z == 0.0 {
             None
         } else {
-            Some((z - self.origin.z) / self.dz)
+            Some((z - self.ori.z) / self.dir.z)
         }
     }
 }
@@ -78,12 +83,12 @@ mod tests {
             &Point3::new(-1.0,  2.5,  3.2),
             &Point3::new( 1.3, -8.4,  7.8),
         );
-        assert_eq_f32!(  2.3, l.dx);
-        assert_eq_f32!(-10.9, l.dy);
-        assert_eq_f32!(  4.6, l.dz);
-        assert_eq_f32!( -1.0, l.origin.x);
-        assert_eq_f32!(  2.5, l.origin.y);
-        assert_eq_f32!(  3.2, l.origin.z);
+        assert_eq_f32!(  2.3, l.dir.x);
+        assert_eq_f32!(-10.9, l.dir.y);
+        assert_eq_f32!(  4.6, l.dir.z);
+        assert_eq_f32!( -1.0, l.ori.x);
+        assert_eq_f32!(  2.5, l.ori.y);
+        assert_eq_f32!(  3.2, l.ori.z);
     }
     
     #[test]

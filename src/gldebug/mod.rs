@@ -1,7 +1,13 @@
 use std::fmt::Debug;
+use std::ptr;
 use std::mem;
 use gl;
 use gl::types::*;
+use cgmath::Point3;
+
+mod lines;
+
+pub use self::lines::DebugLines;
 
 #[allow(dead_code)]
 pub fn print_vbo<T: Debug>(id: GLuint, target: GLenum, group: usize) {

@@ -14,6 +14,7 @@ use water;
 use camera::Camera;
 use thing::{Thing, MetaThing, MetaThingsMap};
 use futil::{read_string_16, write_string_16, read_point_3, write_point_3, IoErrorLine};
+use mouse;
 
 pub struct World {
     pub name: String,
@@ -258,12 +259,12 @@ impl World {
         }
     }
     
-    pub fn draw(&self, camera: &Camera, terrain_program: &terrain::Program, water_program: &water::Program) {
+    pub fn draw(&self, camera: &Camera, terrain_program: &terrain::Program, water_program: &water::Program, mouse_hit: &Option<mouse::Hit>) {
         // Draw the terrain first.
         for inner_vec in self.chunks.iter() {
             for cell in inner_vec.iter() {
                 let chunk = cell.borrow();
-                chunk.draw_terrain(camera, terrain_program);
+                chunk.draw_terrain(camera, terrain_program, mouse_hit);
             }
         }
         

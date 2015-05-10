@@ -144,28 +144,48 @@ fn main() {
     let mut q_down = false;
     let mut e_down = false;
     
-    //gldebug::print_vbo::<f32>(model_buffers.uv_buffer, gl::ARRAY_BUFFER, 2);
-    //gldebug::print_vbo::<u16>(model_buffers.index_buffer, gl::ELEMENT_ARRAY_BUFFER, 18);
+    let mut mouse_x: f32 = 700.0;
+    let mut mouse_y: f32 = 400.0;
     
     //world.to_file(&Path::new("saves/test.city")).unwrap();
+    
+    let mut debug_lines = gldebug::DebugLines::new();
+    
+    /*debug_lines.add_pline3(
+        &PLine3::new(
+            &Point3::new(0.0, 0.0, 0.0),
+            &Point3::new(0.0, 0.0, 50.0)
+        ),
+        0.0, 1.0, 0.0,
+        1.0, 0.0, 0.0
+    );*/
     
     println!("Starting main loop");
     while !window.should_close() {
         let (width, height) = window.get_size();
         camera.resize(width as u16, height as u16);
         
-        let (mouse_x, mouse_y) = window.get_cursor_pos();
+        //let (mouse_x, mouse_y) = window.get_cursor_pos();
+        //println!("{}, {}", mouse_x, mouse_y);
         let mouse_line: PLine3 = camera.unproject(Point2::new(mouse_x as f32, mouse_y as f32));
         let mouse_hit: Option<mouse::Hit> = mouse_tree.intersects_pline3(&mouse_line, &camera);
-        println!("mouse line: {:?}", mouse_line);
+        //println!("mouse line: {:?}", mouse_line);
         //println!("target: {:?}", mouse_hit);
+        debug_lines.clear();
+        debug_lines.add_pline3(
+            &mouse_line,
+            1.0, 0.0, 0.0,
+            0.0, 1.0, 0.0
+        );
+        
         
         unsafe {
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
         
-        axis.draw(&camera, 500.0 / camera.zoom);
-        world.draw(&camera, &terrain_program, &water_program);
+        debug_lines.draw(&camera);
+        //axis.draw(&camera, 500.0 / camera.zoom);
+        world.draw(&camera, &terrain_program, &water_program, &mouse_hit);
         
         // For testing only.
         for thing in z_sorted.get(&camera).iter() {
@@ -199,21 +219,21 @@ fn main() {
         // Pan camera with W and S.
         if window.get_key(Key::W) == Action::Press {
             let zoom = camera.zoom();
-            camera.translate(Vector2::new(0.0, -20.0 / zoom));
+            camera.pan(&Vector2::new(0.0, 0.02));
         }
         if window.get_key(Key::S) == Action::Press {
             let zoom = camera.zoom();
-            camera.translate(Vector2::new(0.0, 20.0 / zoom));
+            camera.pan(&Vector2::new(0.0, -0.02));
         }
         
         // Pan camera with A and D.
         if window.get_key(Key::A) == Action::Press {
             let zoom = camera.zoom();
-            camera.translate(Vector2::new(20.0 / zoom, 0.0));
+            camera.pan(&Vector2::new(-0.02, 0.0));
         }
         if window.get_key(Key::D) == Action::Press {
             let zoom = camera.zoom();
-            camera.translate(Vector2::new(-20.0 / zoom, 0.0));
+            camera.pan(&Vector2::new(0.02, 0.0));
         }
         
         // Zoom camera with Z and X.
@@ -222,6 +242,19 @@ fn main() {
         }
         if window.get_key(Key::X) == Action::Press {
             camera.zoom_by(0.9523809524);
+        }
+        
+        if window.get_key(Key::O) == Action::Press {
+            mouse_x += 10.0;
+        }
+        if window.get_key(Key::P) == Action::Press {
+            mouse_x -= 10.0;
+        }
+        if window.get_key(Key::R) == Action::Press {
+            mouse_y += 10.0;
+        }
+        if window.get_key(Key::T) == Action::Press {
+            mouse_y -= 10.0;
         }
     }
 }

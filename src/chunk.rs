@@ -10,6 +10,7 @@ use terrain;
 use water;
 use camera::Camera;
 use math::Quad;
+use mouse;
 
 static WATER_Z: f32 = 5.0;
 
@@ -364,7 +365,7 @@ impl Chunk {
         }
     }
     
-    pub fn draw_terrain(&self, camera: &Camera, terrain_program: &terrain::Program) {
+    pub fn draw_terrain(&self, camera: &Camera, terrain_program: &terrain::Program, mouse_hit: &Option<mouse::Hit>) {
         if !self.positions_buffered { panic!("Called draw_terrain before buffering positions"); }
         if !self.normals_buffered   { panic!("Called draw_terrain before buffering normals"); }
         if !self.indices_buffered   { panic!("Called draw_terrain before buffering indices"); }
@@ -374,6 +375,10 @@ impl Chunk {
             gl::UseProgram(terrain_program.id);
             gl::UniformMatrix4fv(terrain_program.model_view_idx, 1, gl::FALSE, mem::transmute(&camera.model_view));
             gl::UniformMatrix4fv(terrain_program.projection_idx, 1, gl::FALSE, mem::transmute(&camera.projection));
+            match mouse_hit {
+                &Some(ref hit) => { gl::Uniform3f(terrain_program.mouse_idx, hit.at.x, hit.at.y, hit.at.z); },
+                _ => ()
+            }
             terrain_program.bind_textures();
             // Number of elements to draw = number of quads * 6 verts per quad.
             gl::DrawElements(gl::TRIANGLES, ((self.x_verts - 1) * (self.y_verts - 1) * 6) as i32, gl::UNSIGNED_SHORT, ptr::null());

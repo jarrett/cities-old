@@ -4,14 +4,14 @@ use cgmath::Point3;
 
 mod aabb;
 mod line;
+mod triangle;
 
 pub use self::aabb::{
     split_aabb3_for_quadtree, aabb3_contains_aabb3, aabb3_from_tris,
     pline3_intersects_aabb3
 };
 pub use self::line::PLine3;
-
-pub type Triangle = (Point3<f32>, Point3<f32>, Point3<f32>);
+pub use self::triangle::{Triangle, pline3_intersects_triangle};
 
 pub type Quad = (Point3<f32>, Point3<f32>, Point3<f32>, Point3<f32>);
 

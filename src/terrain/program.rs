@@ -17,6 +17,7 @@ pub struct Program {
     pub flat_idx:       GLint,
     pub slope_idx:      GLint,
     pub cliff_idx:      GLint,
+    pub mouse_idx:      GLint,
     
     // Attribute locations.
     pub position_idx:   GLuint,
@@ -43,6 +44,7 @@ impl Program {
             flat_idx:       glutil::get_uniform_location(id, "plain"),
             slope_idx:      glutil::get_uniform_location(id, "slope"),
             cliff_idx:      glutil::get_uniform_location(id, "cliff"),
+            mouse_idx:      glutil::get_uniform_location(id, "mouse"),
             
             position_idx:   glutil::get_attrib_location( id, "position"),
             normal_idx:     glutil::get_attrib_location( id, "normal"),

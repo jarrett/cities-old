@@ -14,7 +14,7 @@ git = "https://github.com/bjz/gl-rs"
 git = "https://github.com/bjz/glfw-rs.git"
 
 [dependencies.cgmath]
-git = "https://github.com/bjz/cgmath-rs.git"
+git = "https://github.com/jarrett/cgmath-rs.git"
 
 [dependencies.image]
 git = "file:///Users/jarrett/apps/image"

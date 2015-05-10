@@ -1,6 +1,6 @@
 use cgmath::{Aabb3, Point3};
 
-use math::{PLine3, Triangle};
+use math::{PLine3, Triangle, pline3_intersects_triangle};
 
 #[derive(Debug)]
 pub enum Target {
@@ -11,8 +11,8 @@ pub enum Target {
 
 #[derive(Debug)]
 pub struct Hit<'a> {
-    target: &'a Target,
-    at: Point3<f32>
+    pub target: &'a Target,
+    pub at: Point3<f32>
 }
 
 impl Target {
@@ -25,12 +25,19 @@ impl Target {
     }
     
     pub fn intersects_pline3(&self, line: &PLine3) -> Option<Hit> {
-        match self {
+        let opt_point: Option<Point3<f32>> = match self {
             &Target::Ground(ref bb, ref tri1, ref tri2) => {
-                None
+                //pline3_intersects_triangle(&line, tri1).or(
+                //pline3_intersects_triangle(&line, tri2))
+                let (p1, _, _) = tri1.clone();
+                Some(p1)
             },
             //&Target::Water(ref bb)      => { bb },
             //&Target::Thing(ref bb, _)   => { bb }
-        }
+        };
+        
+        opt_point.map(|point| {
+            Hit { target: self, at: point }
+        })
     }
 }
