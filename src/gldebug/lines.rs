@@ -5,11 +5,10 @@ use std::path::Path;
 use gl;
 use gl::types::*;
 use libc::{c_void};
-use cgmath::{Point, Point3};
+use cgmath::{Point, Point3, Ray3};
 
 use glutil;
 use camera::Camera;
-use math::PLine3;
 
 #[allow(dead_code)]
 pub struct DebugLines {
@@ -83,13 +82,13 @@ impl DebugLines {
         lines
     }
     
-    pub fn add_pline3(
-        &mut self, line: &PLine3,
+    pub fn add_ray3(
+        &mut self, ray: &Ray3<f32>,
         r1: f32, g1: f32, b1: f32,
         r2: f32, g2: f32, b2: f32
     ) {
         self.add_segment(
-            Point3::from_vec(&line.ori), Point3::from_vec(&line.dir),
+            ray.origin.clone(), Point3::from_vec(&ray.direction),
             r1, g1, b1,
             r2, g2, b2
         );

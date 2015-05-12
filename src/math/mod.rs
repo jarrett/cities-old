@@ -1,17 +1,13 @@
 use std::cmp;
 use std::cmp::PartialOrd;
-use cgmath::Point3;
+use cgmath::{Point3, Triangle};
 
 mod aabb;
-mod line;
-mod triangle;
 
 pub use self::aabb::{
     split_aabb3_for_quadtree, aabb3_contains_aabb3, aabb3_from_tris,
-    pline3_intersects_aabb3
+    ray3_intersects_aabb3
 };
-pub use self::line::PLine3;
-pub use self::triangle::{Triangle, pline3_intersects_triangle};
 
 pub type Quad = (Point3<f32>, Point3<f32>, Point3<f32>, Point3<f32>);
 
@@ -40,11 +36,11 @@ pub fn max_opts<T: PartialOrd>(opt_a: Option<T>, opt_b: Option<T>) -> Option<T> 
     }
 }
 
-pub fn quad_to_tris(quad: Quad) -> (Triangle, Triangle) {
+pub fn quad_to_tris(quad: Quad) -> (Triangle<Point3<f32>>, Triangle<Point3<f32>>) {
     let (p0, p1, p2, p3) = quad;
     (
-        (p0, p1, p3),
-        (p1, p2, p3)
+        Triangle::new(p0, p1, p3),
+        Triangle::new(p1, p2, p3)
     )
 }
 

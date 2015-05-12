@@ -1,7 +1,5 @@
 use std::ops::Neg;
-use cgmath::{Rad, rad, Point, Point2, Point3, Vector2, Vector4, Matrix, Matrix3, Matrix4, Ortho};
-
-use math::PLine3;
+use cgmath::{Rad, rad, Point, Point2, Point3, Vector2, Vector4, Matrix, Matrix3, Matrix4, Ortho, Ray3};
 
 // 28 degrees on the Z axis.
 static CAMERA_TILT: Rad<f32> = Rad { s: 3.97935069f32 };
@@ -74,7 +72,7 @@ impl Camera {
     // 
     // p is measured in pixels, where the upper left corner of the window is (0, 0) and
     // the lower right is (self.width, self.height).
-    pub fn unproject(&self, p: Point2<f32>) -> PLine3 {
+    pub fn unproject(&self, p: Point2<f32>) -> Ray3<f32> {
         // Convert to OpenGL clip space, i.e. [-1, 1].
         let v1: Vector4<f32> = Vector4::new(
             p.x *  2.0 / self.width  as f32 - 1.0,
@@ -86,9 +84,9 @@ impl Camera {
         let mut v2: Vector4<f32> = v1.clone();
         v2.z = 1.0;
         
-        PLine3::new(
-            &Point3::from_vec(&self.inverse.mul_v(&v1).truncate()),
-            &Point3::from_vec(&self.inverse.mul_v(&v2).truncate())
+        Ray3::from_points(
+            Point3::from_vec(&self.inverse.mul_v(&v1).truncate()),
+            Point3::from_vec(&self.inverse.mul_v(&v2).truncate())
         )
     }
     

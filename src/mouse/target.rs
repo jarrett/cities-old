@@ -1,10 +1,8 @@
-use cgmath::{Aabb3, Point3};
-
-use math::{PLine3, Triangle, pline3_intersects_triangle};
+use cgmath::{Aabb3, Point3, Ray3, Triangle};
 
 #[derive(Debug)]
 pub enum Target {
-    Ground(Aabb3<f32>, Triangle, Triangle),
+    Ground(Aabb3<f32>, Triangle<Point3<f32>>, Triangle<Point3<f32>>),
     //Water(Aabb3<f32>),
     //Thing(Aabb3<f32>, Rc<RefCell<Thing>>)
 }
@@ -24,13 +22,12 @@ impl Target {
         }
     }
     
-    pub fn intersects_pline3(&self, line: &PLine3) -> Option<Hit> {
+    pub fn intersects_ray(&self, ray: &Ray3<f32>) -> Option<Hit> {
         let opt_point: Option<Point3<f32>> = match self {
             &Target::Ground(ref bb, ref tri1, ref tri2) => {
-                //pline3_intersects_triangle(&line, tri1).or(
-                //pline3_intersects_triangle(&line, tri2))
-                let (p1, _, _) = tri1.clone();
-                Some(p1)
+                //(ray, tri1).intersection().or(
+                //(ray, tri2).intersection())
+                Some(tri1.p0.clone())
             },
             //&Target::Water(ref bb)      => { bb },
             //&Target::Thing(ref bb, _)   => { bb }

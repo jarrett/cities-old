@@ -1,11 +1,11 @@
-use cgmath::{Aabb, Aabb3};
+use cgmath::{Aabb, Aabb3, Point3, Ray3, Triangle};
 
 use camera::Camera;
 use world::World;
 use chunk::Chunk;
 use math::{
-    PLine3, Triangle, split_aabb3_for_quadtree, aabb3_contains_aabb3, aabb3_from_tris,
-    pline3_intersects_aabb3, quad_to_tris
+    split_aabb3_for_quadtree, aabb3_contains_aabb3, aabb3_from_tris,
+    ray3_intersects_aabb3, quad_to_tris
 };
 use super::target::{Target, Hit};
 
@@ -30,7 +30,7 @@ impl Tree {
     
     pub fn add_chunk(&mut self, chunk: &Chunk) {
         for quad in chunk.quads() {
-            let (tri1, tri2): (Triangle, Triangle) = quad_to_tris(quad);
+            let (tri1, tri2): (Triangle<Point3<f32>>, Triangle<Point3<f32>>) = quad_to_tris(quad);
             let bb: Aabb3<f32> = aabb3_from_tris(&tri1, &tri2);
             self.insert(
                 Target::Ground(bb, tri1, tri2)
@@ -86,8 +86,8 @@ impl Tree {
         }
     }
     
-    pub fn intersects_pline3(&self, line: &PLine3, camera: &Camera) -> Option<Hit> {
-        self.search(line).and_then(|mut targets| {
+    pub fn intersects_ray3(&self, ray: &Ray3<f32>, camera: &Camera) -> Option<Hit> {
+        self.search(ray).and_then(|mut targets| {
             // Sort the list of possible targets by distance from camera.
             targets.sort_by(|a, b| {
                 camera.distance_to(&a.bb().center()).partial_cmp(
@@ -97,32 +97,32 @@ impl Tree {
             // Starting from the camera, work through the possible targets. Return as
             // soon as we find a hit. If none of the targets was hit, return None.
             targets.iter().filter_map(|target| {
-                target.intersects_pline3(line)
+                target.intersects_ray(ray)
             }).next()
         })
     }
     
-    // Looks for possible mouse targets in this node and its children. If the line
+    // Looks for possible mouse targets in this node and its children. If the ray
     // intersects this node's bounding box, returns a list of targets (which may be
     // empty). Else, returns None.
     // 
-    // This method is private because it's just a helper for intersects_line3.
-    fn search<'a>(&'a self, line: &PLine3) -> Option<Vec<&'a Target>> {
-        if pline3_intersects_aabb3(line, &self.bb) {
+    // This method is private because it's just a helper for intersects_ray3.
+    fn search<'a>(&'a self, ray: &Ray3<f32>) -> Option<Vec<&'a Target>> {
+        if ray3_intersects_aabb3(ray, &self.bb) {
             let mut found: Vec<&Target> = Vec::new();
             
             for target in self.targets.iter() {
-                if pline3_intersects_aabb3(line, target.bb()) {
+                if ray3_intersects_aabb3(ray, target.bb()) {
                     found.push(target);
                 }
             }
             
             match self.children {
                 Some(ref c) => {
-                    self.search_quadrant(&mut found, &c.q1, line);
-                    self.search_quadrant(&mut found, &c.q2, line);
-                    self.search_quadrant(&mut found, &c.q3, line);
-                    self.search_quadrant(&mut found, &c.q4, line);
+                    self.search_quadrant(&mut found, &c.q1, ray);
+                    self.search_quadrant(&mut found, &c.q2, ray);
+                    self.search_quadrant(&mut found, &c.q3, ray);
+                    self.search_quadrant(&mut found, &c.q4, ray);
                 },
                 None => ()
             }
@@ -132,8 +132,8 @@ impl Tree {
         }
     }
     
-    fn search_quadrant<'a>(&self, found: &mut Vec<&'a Target>, tree: &'a Tree, line: &PLine3) {
-        match tree.search(line) {
+    fn search_quadrant<'a>(&self, found: &mut Vec<&'a Target>, tree: &'a Tree, ray: &Ray3<f32>) {
+        match tree.search(ray) {
             Some(mut targets) => { found.append(&mut targets); },
             None => ()
         }

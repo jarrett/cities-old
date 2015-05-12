@@ -35,7 +35,6 @@ use cgmath::*;
 use glfw::{Context, Action, Key};
 use gl::types::*;
 
-use math::PLine3;
 use camera::Camera;
 use axis_indicator::AxisIndicator;
 use world::World;
@@ -151,7 +150,7 @@ fn main() {
     
     let mut debug_lines = gldebug::DebugLines::new();
     
-    /*debug_lines.add_pline3(
+    /*debug_lines.add_ray3(
         &PLine3::new(
             &Point3::new(0.0, 0.0, 0.0),
             &Point3::new(0.0, 0.0, 50.0)
@@ -167,13 +166,13 @@ fn main() {
         
         //let (mouse_x, mouse_y) = window.get_cursor_pos();
         //println!("{}, {}", mouse_x, mouse_y);
-        let mouse_line: PLine3 = camera.unproject(Point2::new(mouse_x as f32, mouse_y as f32));
-        let mouse_hit: Option<mouse::Hit> = mouse_tree.intersects_pline3(&mouse_line, &camera);
+        let mouse_ray: Ray3<f32> = camera.unproject(Point2::new(mouse_x as f32, mouse_y as f32));
+        let mouse_hit: Option<mouse::Hit> = mouse_tree.intersects_ray3(&mouse_ray, &camera);
         //println!("mouse line: {:?}", mouse_line);
         //println!("target: {:?}", mouse_hit);
         debug_lines.clear();
-        debug_lines.add_pline3(
-            &mouse_line,
+        debug_lines.add_ray3(
+            &mouse_ray,
             1.0, 0.0, 0.0,
             0.0, 1.0, 0.0
         );
