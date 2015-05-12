@@ -77,8 +77,8 @@ impl Camera {
         let v1: Vector4<f32> = Vector4::new(
             p.x *  2.0 / self.width  as f32 - 1.0,
             p.y * -2.0 / self.height as f32 + 1.0,
-            -1.0,
-            1.0
+            -0.5,
+            0.5
         );
         
         let mut v2: Vector4<f32> = v1.clone();
@@ -117,6 +117,7 @@ impl Camera {
     pub fn rebuild_model_view(&mut self) {
         // Remember that transformations are applied in reverse order.
         
+        // X-rotate model.
         self.model_view = Matrix4::from(Matrix3::from_angle_x(CAMERA_TILT));
     
         // Z-rotate model.
@@ -126,12 +127,11 @@ impl Camera {
         
         // Translate model.
         self.model_view.mul_self_m(
-          &Matrix4::from_translation(&self.focus.neg().extend(0.0))
+            &Matrix4::from_translation(&self.focus.neg().extend(0.0))
         );
         
         self.rebuild_inverse();
     }
-    
     
     pub fn rebuild_projection(&mut self) {
         self.projection = Matrix4::from(Ortho {

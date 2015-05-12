@@ -212,21 +212,17 @@ fn main() {
         
         // Pan camera with W and S.
         if window.get_key(Key::W) == Action::Press {
-            let zoom = camera.zoom();
             camera.pan(&Vector2::new(0.0, 0.02));
         }
         if window.get_key(Key::S) == Action::Press {
-            let zoom = camera.zoom();
             camera.pan(&Vector2::new(0.0, -0.02));
         }
         
         // Pan camera with A and D.
         if window.get_key(Key::A) == Action::Press {
-            let zoom = camera.zoom();
             camera.pan(&Vector2::new(-0.02, 0.0));
         }
         if window.get_key(Key::D) == Action::Press {
-            let zoom = camera.zoom();
             camera.pan(&Vector2::new(0.02, 0.0));
         }
         

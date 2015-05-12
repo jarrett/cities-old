@@ -1,9 +1,7 @@
 use std::fmt::Debug;
-use std::ptr;
 use std::mem;
 use gl;
 use gl::types::*;
-use cgmath::Point3;
 
 mod lines;
 
