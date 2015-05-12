@@ -18,7 +18,6 @@ mod glutil;
 mod gldebug;
 mod futil;
 mod camera;
-mod axis_indicator;
 mod texture;
 mod world;
 mod terrain;
@@ -36,7 +35,6 @@ use glfw::{Context, Action, Key};
 use gl::types::*;
 
 use camera::Camera;
-use axis_indicator::AxisIndicator;
 use world::World;
 use model::MetaModel;
 use thing::{MetaThing, ZSorted};
@@ -69,8 +67,6 @@ fn main() {
         gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
         gl::ClearColor(0.9, 0.94, 1.0, 1.0);
     }
-    
-    let axis = AxisIndicator::new();
     
     let mut camera = Camera::new(1280, 960, 10f32);
     
@@ -183,7 +179,6 @@ fn main() {
         }
         
         debug_lines.draw(&camera);
-        //axis.draw(&camera, 500.0 / camera.zoom);
         world.draw(&camera, &terrain_program, &water_program, &mouse_hit);
         
         // For testing only.
