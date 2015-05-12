@@ -12,8 +12,7 @@ pub struct Program3d {
     pub id:             GLuint,
     
     // Uniform locations.
-    pub model_view_idx: GLint,
-    pub projection_idx: GLint,
+    pub camera_idx:     GLint,
     pub orbit_idx:      GLint,
     pub direction_idx:  GLint,
     pub origin_idx:     GLint,
@@ -35,8 +34,7 @@ impl Program3d {
         Program3d {
             id:             id,
             
-            model_view_idx: glutil::get_uniform_location(id, "modelView"),
-            projection_idx: glutil::get_uniform_location(id, "projection"),
+            camera_idx:     glutil::get_uniform_location(id, "camera"),
             orbit_idx:      glutil::get_uniform_location(id, "orbit"),
             direction_idx:  glutil::get_uniform_location(id, "direction"),
             origin_idx:     glutil::get_uniform_location(id, "origin"),

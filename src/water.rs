@@ -10,8 +10,7 @@ pub struct Program {
     pub id:             GLuint,
     
     // Uniform locations.
-    pub model_view_idx: GLint,
-    pub projection_idx: GLint,
+    pub camera_idx:     GLint,
     pub foam_idx:       GLint,
     
     // Attribute locations.
@@ -27,8 +26,7 @@ impl Program {
         let id = glutil::make_program(&Path::new("glsl/water.vert.glsl"), &Path::new("glsl/water.frag.glsl"));
         Program {
             id:             id,
-            model_view_idx: glutil::get_uniform_location(id, "modelView"),
-            projection_idx: glutil::get_uniform_location(id, "projection"),
+            camera_idx:     glutil::get_uniform_location(id, "camera"),
             
             foam_idx:       glutil::get_uniform_location(id, "foam"),
             

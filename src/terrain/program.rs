@@ -11,8 +11,7 @@ pub struct Program {
     pub id:             GLuint,
     
     // Uniform locations.
-    pub model_view_idx: GLint,
-    pub projection_idx: GLint,
+    pub camera_idx:     GLint,
     pub underwater_idx: GLint,
     pub flat_idx:       GLint,
     pub slope_idx:      GLint,
@@ -37,8 +36,7 @@ impl Program {
         Program {
             id:             id,
             
-            model_view_idx: glutil::get_uniform_location(id, "modelView"),
-            projection_idx: glutil::get_uniform_location(id, "projection"),
+            camera_idx:     glutil::get_uniform_location(id, "camera"),
             
             underwater_idx: glutil::get_uniform_location(id, "underwater"),
             flat_idx:       glutil::get_uniform_location(id, "plain"),

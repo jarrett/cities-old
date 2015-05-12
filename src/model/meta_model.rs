@@ -173,8 +173,7 @@ impl MetaModel {
             gl::BindVertexArray(buffers.vao);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, buffers.index_buffer);
             gl::UseProgram(program.id);
-            gl::UniformMatrix4fv(program.model_view_idx, 1, gl::FALSE, mem::transmute(&camera.model_view));
-            gl::UniformMatrix4fv(program.projection_idx, 1, gl::FALSE, mem::transmute(&camera.projection));
+            gl::UniformMatrix4fv(program.camera_idx, 1, gl::FALSE, mem::transmute(&camera.transform));
             gl::Uniform3fv(program.origin_idx, 1, mem::transmute(abs_position));
             gl::Uniform1i(program.direction_idx, direction as GLint);
             gl::Uniform1i(program.orbit_idx, camera.orbit as GLint);

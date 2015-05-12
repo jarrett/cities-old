@@ -373,8 +373,7 @@ impl Chunk {
             gl::BindVertexArray(self.terrain_vao);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.index_buffer);
             gl::UseProgram(terrain_program.id);
-            gl::UniformMatrix4fv(terrain_program.model_view_idx, 1, gl::FALSE, mem::transmute(&camera.model_view));
-            gl::UniformMatrix4fv(terrain_program.projection_idx, 1, gl::FALSE, mem::transmute(&camera.projection));
+            gl::UniformMatrix4fv(terrain_program.camera_idx, 1, gl::FALSE, mem::transmute(&camera.transform));
             match mouse_hit {
                 &Some(ref hit) => { gl::Uniform3f(terrain_program.mouse_idx, hit.at.x, hit.at.y, hit.at.z); },
                 _ => ()
@@ -396,8 +395,7 @@ impl Chunk {
             gl::BindVertexArray(self.water_vao);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.index_buffer);
             gl::UseProgram(water_program.id);
-            gl::UniformMatrix4fv(water_program.model_view_idx, 1, gl::FALSE, mem::transmute(&camera.model_view));
-            gl::UniformMatrix4fv(water_program.projection_idx, 1, gl::FALSE, mem::transmute(&camera.projection));
+            gl::UniformMatrix4fv(water_program.camera_idx, 1, gl::FALSE, mem::transmute(&camera.transform));
             water_program.bind_textures();
             // Number of elements to draw = number of quads * 6 verts per quad.
             gl::DrawElements(gl::TRIANGLES, ((self.x_verts - 1) * (self.y_verts - 1) * 6) as i32, gl::UNSIGNED_SHORT, ptr::null());

@@ -24,8 +24,7 @@ pub struct DebugLines {
     pub program:         GLuint,
     pub position_idx:    GLuint,
     pub color_idx:       GLuint,
-    pub model_view_idx:  GLint,
-    pub projection_idx:  GLint,
+    pub camera_idx:      GLint,
     
     pub next_attr:       usize,
     pub next_index:      usize,
@@ -37,8 +36,7 @@ impl DebugLines {
             positions: Vec::new(), colors: Vec::new(), indices: Vec::new(),
             position_buffer: 0, color_buffer: 0, index_buffer: 0, vao: 0,
             program: 0, position_idx: 0, color_idx: 0,
-            model_view_idx: 0, projection_idx: 0,
-            next_attr: 0, next_index: 0
+            camera_idx: 0, next_attr: 0, next_index: 0
         };
     
         unsafe {
@@ -49,8 +47,7 @@ impl DebugLines {
             lines.program        = glutil::make_program(&Path::new("glsl/debug-lines.vert.glsl"), &Path::new("glsl/debug-lines.frag.glsl"));
             lines.position_idx   = glutil::get_attrib_location(lines.program, "position");
             lines.color_idx      = glutil::get_attrib_location(lines.program, "color");
-            lines.model_view_idx = glutil::get_uniform_location(lines.program, "modelView");
-            lines.projection_idx = glutil::get_uniform_location(lines.program, "projection");
+            lines.camera_idx     = glutil::get_uniform_location(lines.program, "camera");
         
             gl::BindVertexArray(lines.vao);
         
@@ -88,7 +85,7 @@ impl DebugLines {
         r2: f32, g2: f32, b2: f32
     ) {
         self.add_segment(
-            ray.origin.clone(), Point3::from_vec(&ray.direction),
+            ray.origin.clone(), ray.origin.add_v(&ray.direction),
             r1, g1, b1,
             r2, g2, b2
         );
@@ -124,8 +121,7 @@ impl DebugLines {
             gl::BindVertexArray(self.vao);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.index_buffer);
             gl::UseProgram(self.program);
-            gl::UniformMatrix4fv(self.model_view_idx, 1, gl::FALSE, mem::transmute(&camera.model_view));
-            gl::UniformMatrix4fv(self.projection_idx, 1, gl::FALSE, mem::transmute(&camera.projection));
+            gl::UniformMatrix4fv(self.camera_idx, 1, gl::FALSE, mem::transmute(&camera.transform));
             gl::DrawElements(gl::LINES, self.positions.len() as i32, gl::UNSIGNED_SHORT, ptr::null::<c_void>() as *const c_void);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
             gl::BindVertexArray(0);
