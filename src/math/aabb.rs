@@ -2,14 +2,13 @@ use cgmath::{Aabb, Aabb3, Point3, Triangle, Ray3};
 
 use super::{in_interval, min_opts, max_opts};
 
-pub fn aabb3_contains_aabb3(outer: &Aabb3<f32>, inner: &Aabb3<f32>) -> bool {
+// Considers the X and Y coordinates only.
+pub fn aabb3_contains_aabb3_xy(outer: &Aabb3<f32>, inner: &Aabb3<f32>) -> bool {
     if outer.min.x > inner.min.x { return false; }
     if outer.min.y > inner.min.y { return false; }
-    if outer.min.z > inner.min.z { return false; }
     
     if outer.max.x < inner.max.x { return false; }
     if outer.max.y < inner.max.y { return false; }
-    if outer.max.z < inner.max.z { return false; }
     
     true
 }

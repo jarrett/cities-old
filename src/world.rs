@@ -16,18 +16,20 @@ use thing::{Thing, MetaThing, MetaThingsMap};
 use futil::{read_string_16, write_string_16, read_point_3, write_point_3, IoErrorLine};
 use mouse;
 
+use std::cmp::{min, max};
+
 pub struct World {
     pub name: String,
     pub x_verts: u32,       // X dimension of world.
     pub y_verts: u32,       // Y dimension of world.
-    pub x_size: u32,        // X dimension of world. Equal to xVerts - 1.
-    pub y_size: u32,        // X dimension of world. Equal to xVerts - 1.
+    pub x_size: u32,        // X dimension of world. Equal to x_verts - 1.
+    pub y_size: u32,        // X dimension of world. Equal to x_verts - 1.
     pub x_chunks: u32,      // Number of chunks along the X axis.
     pub y_chunks: u32,      // Number of chunks along the Y axis.
     pub chunk_x_verts: u32, // X vertices of each chunk.
     pub chunk_y_verts: u32, // Y vertices of each chunk.
-    pub chunk_x_size: u32,  // X dimension of each chunk. Equal to chunkXVerts - 1;
-    pub chunk_y_size: u32,  // Y dimension of each chunk. Equal to chunkYVerts - 1;
+    pub chunk_x_size: u32,  // X dimension of each chunk. Equal to chunk_x_verts - 1;
+    pub chunk_y_size: u32,  // Y dimension of each chunk. Equal to chunk_y_verts - 1;
     pub chunks: Vec<Vec<RefCell<Chunk>>>,
     pub things: Vec<Rc<Thing>>
 }
@@ -36,7 +38,7 @@ impl World {
     pub fn new<T: terrain::Source>(
         name: String, terrain_source: T,
         terrain_program: &terrain::Program, water_program: &water::Program,
-        chunk_x_verts: u32, chunk_y_verts: u32
+        chunk_x_size: u32, chunk_y_size: u32
       ) -> World {
         let mut world = World {
           name:          name,
@@ -44,25 +46,25 @@ impl World {
           y_verts:       terrain_source.y_verts(),
           x_size:        terrain_source.x_verts() - 1,
           y_size:        terrain_source.y_verts() - 1,
-          chunk_x_verts: chunk_x_verts,
-          chunk_y_verts: chunk_y_verts,
-          chunk_x_size:  chunk_x_verts - 1,
-          chunk_y_size:  chunk_y_verts - 1,
+          chunk_x_verts: chunk_x_size + 1,
+          chunk_y_verts: chunk_y_size + 1,
+          chunk_x_size:  chunk_x_size,
+          chunk_y_size:  chunk_y_size,
           x_chunks:      0,
           y_chunks:      0,
-          chunks:        Vec::with_capacity(((terrain_source.y_verts() - 1) / chunk_y_verts) as usize),
+          chunks:        Vec::with_capacity(((terrain_source.y_verts() - 1) / (chunk_y_size)) as usize),
           things:        Vec::new()
         };
         
-        if world.x_verts % chunk_x_verts != 0 {
-          panic!("x_verts ({}) is not a multiple of chunk_x_verts ({})", world.x_verts, chunk_x_verts);
+        if world.x_size % world.chunk_x_size != 0 {
+          panic!("x_size ({}) is not a multiple of chunk_x_size ({})", world.x_size, world.chunk_x_size);
         }
-        if world.y_verts % chunk_y_verts != 0 {
-          panic!("y_verts ({}) is not a multiple of chunk_y_verts ({})", world.y_verts, chunk_y_verts);
+        if world.y_size % world.chunk_y_size != 0 {
+          panic!("y_size ({}) is not a multiple of chunk_y_size ({})", world.y_size, world.chunk_y_size);
         }
   
-        world.x_chunks = world.x_size / chunk_x_verts;
-        world.y_chunks = world.y_size / chunk_y_verts;
+        world.x_chunks = world.x_size / world.chunk_x_size;
+        world.y_chunks = world.y_size / world.chunk_y_size;
         
         for _ in 0u32..world.y_chunks {
           let inner_vec = Vec::with_capacity(world.x_chunks as usize);
@@ -78,12 +80,12 @@ impl World {
                 // This is where we finally initialize the chunks themselves.
                 let min_x: u32 = chunk_x * world.chunk_x_size;
                 let min_y: u32 = chunk_y * world.chunk_y_size;
-                let mut chunk: Chunk = Chunk::new(terrain_program, water_program, min_x, min_y, chunk_x_verts, chunk_y_verts);
+                let mut chunk: Chunk = Chunk::new(terrain_program, water_program, min_x, min_y, world.chunk_x_verts, world.chunk_y_verts);
                 
                 // Drill down deeper: Go through the full X/Y range of each chunk and set the height
                 // for each vertex.
-                for rel_y in 0u32..chunk_y_verts {
-                    for rel_x in 0u32..chunk_x_verts {
+                for rel_y in 0u32..world.chunk_y_verts {
+                    for rel_x in 0u32..world.chunk_x_verts {
                         let x: u32 = min_x + rel_x;
                         let y: u32 = min_y + rel_y;
                         
@@ -117,7 +119,7 @@ impl World {
     
     pub fn from_file(
         terrain_program: &terrain::Program, water_program: &water::Program,
-        chunk_x_verts: u32, chunk_y_verts: u32,
+        chunk_x_size: u32, chunk_y_size: u32,
         meta_things_map: &MetaThingsMap, path: &Path
     ) -> Result<World, IoErrorLine> {
         let mut file = tryln!(File::open(path));
@@ -134,7 +136,7 @@ impl World {
         let terrain_path = Path::new(terrain_path.as_str());
         let z_scale: f32 = tryln!(file.read_f32::<BigEndian>());
         let terrain_source = terrain::source::ImageSource::new(&terrain_path, z_scale);
-        let mut world = World::new(name, terrain_source, terrain_program, water_program, chunk_x_verts, chunk_y_verts);
+        let mut world = World::new(name, terrain_source, terrain_program, water_program, chunk_x_size, chunk_y_size);
         
         // Read meta things table.
         tryln!(file.read_u32::<BigEndian>()); // Table size.

@@ -99,7 +99,7 @@ impl Spritesheet {
         // RGBA requires four bytes per pixel.
         let mut buffer: Vec<u8> = iter::repeat(255).take((width * height * 4) as usize).collect();
         
-        for packed in packed_images.drain() {
+        for packed in packed_images.drain(..) {
             let (min_x, min_y): (u32, u32)            = (packed.min_x, packed.min_y);
             let wrapper:        ImageWrapper          = packed.into_inner();
             let name:           String                = String::from_str(wrapper.path.file_stem().unwrap().to_str().unwrap());
@@ -185,7 +185,7 @@ impl Spritesheet {
 
 impl Drop for Spritesheet {
     fn drop(&mut self) {
-        for mut id in self.texture_ids.drain() {
+        for mut id in self.texture_ids.drain(..) {
             unsafe {
                 gl::DeleteTextures(1, &mut id);
             }

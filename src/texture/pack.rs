@@ -9,7 +9,7 @@ use std::boxed::Box;
 pub fn pack_some<T: WidthHeight>(width: u32, height: u32, items_to_pack: &mut Vec<T>) -> Vec<Packed<T>> {
     let mut tree = Node::new(Rectangle {min_x: 0, min_y: 0, width: width, height: height});
     let mut items_packed: Vec<Packed<T>> = Vec::new();
-    for item in items_to_pack.drain() {
+    for item in items_to_pack.drain(..) {
         let result: Option<Rectangle> = tree.add(item.width(), item.height());
         match result {
             Some(packed_rect) => {

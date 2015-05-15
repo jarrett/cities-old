@@ -17,7 +17,7 @@ git = "https://github.com/bjz/glfw-rs.git"
 git = "https://github.com/jarrett/cgmath-rs.git"
 
 [dependencies.image]
-git = "file:///Users/jarrett/apps/image"
+git = "https://github.com/PistonDevelopers/image.git"
 
 [dependencies]
 libc = "*"

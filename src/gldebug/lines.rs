@@ -31,6 +31,7 @@ pub struct DebugLines {
 }
 
 impl DebugLines {
+    #[allow(dead_code)]
     pub fn new() -> DebugLines {
         let mut lines = DebugLines {
             positions: Vec::new(), colors: Vec::new(), indices: Vec::new(),
@@ -79,6 +80,7 @@ impl DebugLines {
         lines
     }
     
+    #[allow(dead_code)]
     pub fn add_ray3(
         &mut self, ray: &Ray3<f32>,
         r1: f32, g1: f32, b1: f32,
@@ -91,6 +93,7 @@ impl DebugLines {
         );
     }
     
+    #[allow(dead_code)]
     pub fn add_segment(
         &mut self, p1: Point3<f32>, p2: Point3<f32>,
         r1: f32, g1: f32, b1: f32,
@@ -108,6 +111,7 @@ impl DebugLines {
         self.buffer();
     }
     
+    #[allow(dead_code)]
     pub fn clear(&mut self) {
         self.positions.clear();
         self.colors.clear();
@@ -115,6 +119,7 @@ impl DebugLines {
         self.buffer();
     }
     
+    #[allow(dead_code)]
     pub fn draw(&self, camera: &Camera) {
         unsafe {
             gl::LineWidth(1.0);
@@ -128,6 +133,7 @@ impl DebugLines {
         }
     }
     
+    #[allow(dead_code)]
     fn buffer(&mut self) {
         unsafe {
             gl::BindBuffer(gl::ARRAY_BUFFER, self.position_buffer);

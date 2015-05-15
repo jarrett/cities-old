@@ -5,7 +5,7 @@ use cgmath::{Point3, Triangle};
 mod aabb;
 
 pub use self::aabb::{
-    split_aabb3_for_quadtree, aabb3_contains_aabb3, aabb3_from_tris,
+    split_aabb3_for_quadtree, aabb3_contains_aabb3_xy, aabb3_from_tris,
     ray3_intersects_aabb3
 };
 

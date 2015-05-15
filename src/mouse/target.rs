@@ -27,6 +27,7 @@ impl Target {
             &Target::Ground(ref bb, ref tri1, ref tri2) => {
                 //(ray, tri1).intersection().or(
                 //(ray, tri2).intersection())
+                println!("hit: {:?}", bb);
                 Some(tri1.p0.clone())
             },
             //&Target::Water(ref bb)      => { bb },

@@ -1,5 +1,6 @@
 #![feature(core)]
 #![feature(collections)]
+#![feature(collections_drain)]
 #![feature(convert)]
 #![feature(fs_walk)]
 #![feature(std_misc)]
@@ -107,16 +108,16 @@ fn main() {
     ).unwrap();
     
     println!("Loading world");
-    /*let mut world: World = World::new(
+    let mut world: World = World::new(
         String::from_str("river-128x128"),
         terrain::source::ImageSource::new(Path::new("assets/height/river-128x128.png"), 0.1),
         &terrain_program, &water_program,
         16, 16
-    );*/
+    );
     
-    let mut world: World = World::from_file(
+    /*let mut world: World = World::from_file(
         &terrain_program, &water_program, 16, 16, &meta_things_map, &Path::new("saves/test.city")
-    ).unwrap();
+    ).unwrap();*/
     
     // For testing only.
     /*let meta_thing: &Rc<MetaThing> = meta_things_map.get("jarrett-test").unwrap();
@@ -143,6 +144,28 @@ fn main() {
     
     let mut debug_lines = gldebug::DebugLines::new();
     
+    /*mouse_tree.add_to_debug_lines(&mut debug_lines, 0, &vec!(
+        (1.0, 0.0, 0.0),
+        (0.0, 1.0, 0.0),
+        (0.0, 0.0, 1.0),
+        (1.0, 1.0, 0.0),
+        (0.0, 1.0, 1.0),
+        (1.0, 0.0, 1.0)
+    ));*/
+    
+    /*debug_lines.add_segment(
+        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(128.0, 0.0, 0.0),
+        1.0, 0.0, 70.0,
+        1.0, 0.0, 70.0,
+    );
+    debug_lines.add_segment(
+        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(0.0, 128.0, 0.0),
+        0.0, 1.0, 70.0,
+        0.0, 1.0, 70.0,
+    );*/
+    
     println!("Starting main loop");
     while !window.should_close() {
         let (width, height) = window.get_size();
@@ -160,7 +183,6 @@ fn main() {
             1.0, 0.0, 0.0,
             0.0, 1.0, 0.0
         );
-        
         
         unsafe {
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
