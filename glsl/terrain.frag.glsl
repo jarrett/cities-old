@@ -133,14 +133,13 @@ void main() {
   
   float cursorMix;
   if (mouseIn == 1u) {
-    // The closer we are to the mouse, the more cursor color to mix in.
-    cursorMix = smoothstep(
-      10.0, 0.0,
-      length(vPosition - mousePosition)
-    );
+    // Distance from this fragment to the boundary of the circle. The circle is centered
+    // on the cursor. The first parameter of abs is the radius.
+    float d = abs(2.0 - length(vPosition - mousePosition));
+    cursorMix = smoothstep(0.5, 0.0, d);
   } else {
     cursorMix = 0.0;
   }
   
-  outColor = mix(litGroundColor, vec4(0.0, 0.2, 1.0, 1.0), cursorMix);
+  outColor = mix(litGroundColor, vec4(1.0, 1.0, 1.0, 1.0), cursorMix);
 }
