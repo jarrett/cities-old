@@ -11,22 +11,23 @@ pub struct Program {
     pub id:             GLuint,
     
     // Uniform locations.
-    pub camera_idx:     GLint,
-    pub underwater_idx: GLint,
-    pub flat_idx:       GLint,
-    pub slope_idx:      GLint,
-    pub cliff_idx:      GLint,
-    pub mouse_idx:      GLint,
+    pub camera_idx:         GLint,
+    pub underwater_idx:     GLint,
+    pub flat_idx:           GLint,
+    pub slope_idx:          GLint,
+    pub cliff_idx:          GLint,
+    pub mouse_in_idx:       GLint,
+    pub mouse_position_idx: GLint,
     
     // Attribute locations.
-    pub position_idx:   GLuint,
-    pub normal_idx:     GLuint,
+    pub position_idx:       GLuint,
+    pub normal_idx:         GLuint,
     
     // Textures.
-    pub underwater_tex: Texture,
-    pub flat_tex:       Texture,
-    pub slope_tex:      Texture,
-    pub cliff_tex:      Texture
+    pub underwater_tex:     Texture,
+    pub flat_tex:           Texture,
+    pub slope_tex:          Texture,
+    pub cliff_tex:          Texture
 }
 
 impl Program {
@@ -36,21 +37,22 @@ impl Program {
         Program {
             id:             id,
             
-            camera_idx:     glutil::get_uniform_location(id, "camera"),
+            camera_idx:         glutil::get_uniform_location(id, "camera"),
             
-            underwater_idx: glutil::get_uniform_location(id, "underwater"),
-            flat_idx:       glutil::get_uniform_location(id, "plain"),
-            slope_idx:      glutil::get_uniform_location(id, "slope"),
-            cliff_idx:      glutil::get_uniform_location(id, "cliff"),
-            mouse_idx:      glutil::get_uniform_location(id, "mouse"),
+            underwater_idx:     glutil::get_uniform_location(id, "underwater"),
+            flat_idx:           glutil::get_uniform_location(id, "plain"),
+            slope_idx:          glutil::get_uniform_location(id, "slope"),
+            cliff_idx:          glutil::get_uniform_location(id, "cliff"),
+            mouse_in_idx:       glutil::get_uniform_location(id, "mouseIn"),
+            mouse_position_idx: glutil::get_uniform_location(id, "mousePosition"),
             
-            position_idx:   glutil::get_attrib_location( id, "position"),
-            normal_idx:     glutil::get_attrib_location( id, "normal"),
+            position_idx:       glutil::get_attrib_location( id, "position"),
+            normal_idx:         glutil::get_attrib_location( id, "normal"),
             
-            underwater_tex: Texture::new(&Path::new("assets/textures/underwater.jpg"), &tex_cfg),
-            flat_tex:       Texture::new(&Path::new("assets/textures/plain.jpg"), &tex_cfg),
-            slope_tex:      Texture::new(&Path::new("assets/textures/slope.jpg"), &tex_cfg),
-            cliff_tex:      Texture::new(&Path::new("assets/textures/cliff.jpg"), &tex_cfg)
+            underwater_tex:     Texture::new(&Path::new("assets/textures/underwater.jpg"), &tex_cfg),
+            flat_tex:           Texture::new(&Path::new("assets/textures/plain.jpg"), &tex_cfg),
+            slope_tex:          Texture::new(&Path::new("assets/textures/slope.jpg"), &tex_cfg),
+            cliff_tex:          Texture::new(&Path::new("assets/textures/cliff.jpg"), &tex_cfg)
         }
     }
     

@@ -177,18 +177,19 @@ fn main() {
         let mouse_hit: Option<mouse::Hit> = mouse_tree.intersects_ray3(&mouse_ray, &camera);
         //println!("mouse line: {:?}", mouse_line);
         //println!("target: {:?}", mouse_hit);
-        debug_lines.clear();
+        /*debug_lines.clear();
         debug_lines.add_ray3(
             &mouse_ray,
             1.0, 0.0, 0.0,
             0.0, 1.0, 0.0
-        );
+        );*/
         
         unsafe {
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
         
-        debug_lines.draw(&camera);
+        //debug_lines.draw(&camera);
+        
         world.draw(&camera, &terrain_program, &water_program, &mouse_hit);
         
         // For testing only.

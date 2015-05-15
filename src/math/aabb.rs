@@ -55,8 +55,8 @@ pub fn ray3_intersects_aabb3(ray: &Ray3<f32>, bb: &Aabb3<f32>) -> bool {
     let t2x: Option<f32> = ray.where_x_eq(bb.max.x);
     
     // y planes.
-    let t1y: Option<f32> = ray.where_y_eq(bb.min.z);
-    let t2y: Option<f32> = ray.where_y_eq(bb.max.z);
+    let t1y: Option<f32> = ray.where_y_eq(bb.min.y);
+    let t2y: Option<f32> = ray.where_y_eq(bb.max.y);
     
     // z planes.
     let t1z: Option<f32> = ray.where_z_eq(bb.min.z);

@@ -81,8 +81,6 @@ impl Camera {
         
         let mut v2: Vector4<f32> = v1.clone();
         v2.z = 1.0;
-        // Just temporary so we can see the debug line.
-        v2.x = v1.x + 0.1;
         
         Ray3::from_points(
             Point3::from_vec(&self.inverse.mul_v(&v1).truncate()),

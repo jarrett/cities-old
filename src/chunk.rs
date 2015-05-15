@@ -374,9 +374,14 @@ impl Chunk {
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.index_buffer);
             gl::UseProgram(terrain_program.id);
             gl::UniformMatrix4fv(terrain_program.camera_idx, 1, gl::FALSE, mem::transmute(&camera.transform));
-            match mouse_hit {
-                &Some(ref hit) => { gl::Uniform3f(terrain_program.mouse_idx, hit.at.x, hit.at.y, hit.at.z); },
-                _ => ()
+            match *mouse_hit {
+                Some(ref hit) => {
+                    gl::Uniform1ui(terrain_program.mouse_in_idx, 1);
+                    gl::Uniform3f(terrain_program.mouse_position_idx, hit.at.x, hit.at.y, hit.at.z);
+                },
+                None => { 
+                    gl::Uniform1ui(terrain_program.mouse_in_idx, 0);
+                }
             }
             terrain_program.bind_textures();
             // Number of elements to draw = number of quads * 6 verts per quad.
