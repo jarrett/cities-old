@@ -1,4 +1,3 @@
-use std::fmt::Debug;
 use std::ptr;
 use std::mem;
 use std::path::Path;

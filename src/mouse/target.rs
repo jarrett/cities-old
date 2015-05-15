@@ -24,7 +24,7 @@ impl Target {
     
     pub fn intersects_ray(&self, ray: &Ray3<f32>) -> Option<Hit> {
         let opt_point: Option<Point3<f32>> = match self {
-            &Target::Ground(ref bb, ref tri1, ref tri2) => {
+            &Target::Ground(_, ref tri1, ref tri2) => {
                 (ray, tri1).intersection().or(
                 (ray, tri2).intersection())
             },

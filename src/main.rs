@@ -108,22 +108,22 @@ fn main() {
     ).unwrap();
     
     println!("Loading world");
-    let mut world: World = World::new(
+    /*let world: World = World::new(
         String::from_str("river-128x128"),
         terrain::source::ImageSource::new(Path::new("assets/height/river-128x128.png"), 0.1),
         &terrain_program, &water_program,
         16, 16
-    );
+    );*/
     
-    /*let mut world: World = World::from_file(
+    let world: World = World::from_file(
         &terrain_program, &water_program, 16, 16, &meta_things_map, &Path::new("saves/test.city")
-    ).unwrap();*/
+    ).unwrap();
     
     // For testing only.
     /*let meta_thing: &Rc<MetaThing> = meta_things_map.get("jarrett-test").unwrap();
     for direction in 0u8..8u8 {
         let thing = Rc::new(
-          Thing::new(meta_thing, &Vector3::new(5.0 + 3.0 * direction as f32, 5.0, 45.0), direction)
+          Thing::new(meta_thing, &Point3::new(5.0 + 3.0 * direction as f32, 5.0, 45.0), direction)
         );
         world.things.push(thing);
     }*/
@@ -140,9 +140,10 @@ fn main() {
     let mut q_down = false;
     let mut e_down = false;
     
+    // For testing only.
     //world.to_file(&Path::new("saves/test.city")).unwrap();
     
-    let mut debug_lines = gldebug::DebugLines::new();
+    //let mut debug_lines = gldebug::DebugLines::new();
     
     /*mouse_tree.add_to_debug_lines(&mut debug_lines, 0, &vec!(
         (1.0, 0.0, 0.0),

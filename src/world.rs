@@ -16,8 +16,6 @@ use thing::{Thing, MetaThing, MetaThingsMap};
 use futil::{read_string_16, write_string_16, read_point_3, write_point_3, IoErrorLine};
 use mouse;
 
-use std::cmp::{min, max};
-
 pub struct World {
     pub name: String,
     pub x_verts: u32,       // X dimension of world.

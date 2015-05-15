@@ -88,10 +88,6 @@ impl Camera {
         )
     }
     
-    pub fn zoom(&self) -> f32 {
-        self.zoom
-    }
-    
     pub fn zoom_by(&mut self, multiplier: f32) {
         self.zoom = self.zoom * multiplier;
         self.rebuild_matrices();
