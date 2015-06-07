@@ -14,9 +14,8 @@ use gl::types::*;
 use futil::{read_string_16, IoErrorLine};
 use model;
 use camera::Camera;
-use texture::{Spritesheet, Sprite};
 use super::uvs_for_direction::UvsForDirection;
-use super::{MetaModelsMap, Buffers};
+use super::{SpriteSheet, Sprite, MetaModelsMap, Buffers};
 
 pub struct MetaModel {
     author_name: String,
@@ -32,7 +31,7 @@ pub struct MetaModel {
 }
 
 impl MetaModel {
-    pub fn from_file(path: &Path, opt_spritesheet: Option<&Spritesheet>) -> Result<MetaModel, IoErrorLine> {
+    pub fn from_file(path: &Path, opt_spritesheet: Option<&SpriteSheet>) -> Result<MetaModel, IoErrorLine> {
         let mut file = tryln!(File::open(path));
         
         // Read header.
@@ -57,7 +56,7 @@ impl MetaModel {
             match opt_spritesheet {
                 Some(spritesheet) => {
                     let sprite_name: String = format!("{}-{}-{}", author_name, model_name, direction);
-                    let sprite: Rc<Sprite> = match spritesheet.by_name.get(sprite_name.as_str()) {
+                    let sprite: Rc<Sprite> = match spritesheet.by_name.get(&sprite_name) {
                         Some(rc_sprite)  => { rc_sprite.clone() }
                         None => { return Err((
                             io::Error::new(io::ErrorKind::Other, format!(
@@ -80,7 +79,7 @@ impl MetaModel {
         })
     }
     
-    pub fn load_dir(path: &Path, buffers: &mut Buffers, spritesheet: &Spritesheet) -> Result<MetaModelsMap, IoErrorLine> {
+    pub fn load_dir(path: &Path, buffers: &mut Buffers, spritesheet: &SpriteSheet) -> Result<MetaModelsMap, IoErrorLine> {
         let mut map: MetaModelsMap = HashMap::new();
         let walk = tryln!(fs::walk_dir(path));
         for entry in walk {

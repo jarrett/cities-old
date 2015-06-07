@@ -1,5 +1,7 @@
+// Variable-sized sprites for models. The sprites get packed into one or more
+// sprite-sheets, each of which owns an OpenGL texture.
+
 use std::path::{Path, PathBuf};
-use std::fs;
 use std::iter;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -10,12 +12,13 @@ use image::{GenericImage, DynamicImage, RgbaImage};
 use libc::{c_void};
 use cgmath::{Vector, Vector2};
 
-use super::{WidthHeight, pack_some, sort_for_packing, Config};
-use futil::IoErrorLine;
+use texture::Config;
+use model::sprite_pack::{WidthHeight, pack_some, sort_for_packing};
+use futil::{IoErrorLine, walk_ext};
 
-pub struct Spritesheet {
-    pub width: u32,
-    pub height: u32,
+pub struct SpriteSheet {
+    pub width: usize,
+    pub height: usize,
     pub by_name: HashMap<String, Rc<Sprite>>,
     pub texture_ids: Vec<GLuint>
 }
@@ -47,13 +50,13 @@ impl ImageWrapper {
 }
 
 impl WidthHeight for ImageWrapper {
-    fn width(&self)  -> u32 { self.inner.dimensions().0 }
-    fn height(&self) -> u32 { self.inner.dimensions().1 }
+    fn width(&self)  -> usize { self.inner.dimensions().0 as usize }
+    fn height(&self) -> usize { self.inner.dimensions().1 as usize }
 }
 
-impl Spritesheet {
-    pub fn new(width: u32, height: u32, paths: &Vec<PathBuf>, config: &Config) -> Spritesheet {
-        let mut sheet = Spritesheet {
+impl SpriteSheet {
+    pub fn new(width: usize, height: usize, paths: &Vec<PathBuf>, config: &Config) -> SpriteSheet {
+        let mut sheet = SpriteSheet {
             width: width, height: height, by_name: HashMap::new(), texture_ids: Vec::new()
         };
         
@@ -71,19 +74,9 @@ impl Spritesheet {
         sheet
     }
     
-    pub fn load_dir(width: u32, height: u32, path: &Path, config: &Config) -> Result<Spritesheet, IoErrorLine> {
-        let mut image_paths: Vec<PathBuf> = Vec::new();
-        let walk = tryln!(fs::walk_dir(path));
-        for entry in walk {
-            let path: &PathBuf = &entry.unwrap().path();
-            match path.extension() {
-                Some(os_str) if os_str == "png" => {
-                    image_paths.push(path.clone());
-                },
-                _ => ()
-            }
-        }
-        Ok(Spritesheet::new(width, height, &image_paths, config))
+    pub fn load_dir(width: usize, height: usize, path: &Path, config: &Config) -> Result<SpriteSheet, IoErrorLine> {
+        let image_paths = try!(walk_ext(path, "png"));
+        Ok(SpriteSheet::new(width, height, &image_paths, config))
     }
     
     // Takes a list of images left to pack. Creates a new OpenGL texture and pushes its
@@ -91,8 +84,8 @@ impl Spritesheet {
     // empty or the OpenGL texture can't fit any more sprites.
     // 
     // images_to_pack should have been sorted with sort_for_packing prior to calling this.
-    pub fn pack_one_texture(&mut self, width: u32, height: u32, config: &Config, mut images_to_pack: &mut Vec<ImageWrapper>) {
-        let current_texture_id = Spritesheet::new_texture(config, &mut self.texture_ids);
+    pub fn pack_one_texture(&mut self, width: usize, height: usize, config: &Config, mut images_to_pack: &mut Vec<ImageWrapper>) {
+        let current_texture_id = SpriteSheet::new_texture(config, &mut self.texture_ids);
         
         let mut packed_images = pack_some(width, width, &mut images_to_pack);
     
@@ -100,12 +93,12 @@ impl Spritesheet {
         let mut buffer: Vec<u8> = iter::repeat(255).take((width * height * 4) as usize).collect();
         
         for packed in packed_images.drain(..) {
-            let (min_x, min_y): (u32, u32)            = (packed.min_x, packed.min_y);
+            let (min_x, min_y): (usize, usize)        = (packed.min_x, packed.min_y);
             let wrapper:        ImageWrapper          = packed.into_inner();
             let name:           String                = String::from_str(wrapper.path.file_stem().unwrap().to_str().unwrap());
             let img:            RgbaImage             = wrapper.into_inner().to_rgba();
-            let img_w:          u32                   = img.width();
-            let img_h:          u32                   = img.height();
+            let img_w:          usize                 = img.width() as usize;
+            let img_h:          usize                 = img.height() as usize;
             let img_raw:        Vec<u8>               = img.into_raw();
         
             // Copy the image into the buffer at its appropriate position.
@@ -183,7 +176,7 @@ impl Spritesheet {
     }
 }
 
-impl Drop for Spritesheet {
+impl Drop for SpriteSheet {
     fn drop(&mut self) {
         for mut id in self.texture_ids.drain(..) {
             unsafe {

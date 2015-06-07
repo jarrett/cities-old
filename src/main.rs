@@ -19,14 +19,14 @@ mod glutil;
 mod gldebug;
 mod futil;
 mod camera;
-mod texture;
 mod world;
 mod terrain;
+mod overlay;
 mod chunk;
-mod water;
 mod thing;
 mod model;
 mod mouse;
+mod texture;
 
 use std::default::Default;
 use std::cmp;
@@ -37,9 +37,9 @@ use gl::types::*;
 
 use camera::Camera;
 use world::World;
-use model::MetaModel;
+use model::{SpriteSheet, MetaModel};
 use thing::{MetaThing, ZSorted};
-use texture::Spritesheet;
+use overlay::Layer;
 
 fn main() {
     println!("Initing GLFW");
@@ -72,18 +72,18 @@ fn main() {
     let mut camera = Camera::new(1280, 960, 10f32);
     
     println!("Loading shaders");
-    let terrain_program = terrain::Program::new();
-    let water_program   = water::Program::new();
-    let model_program3d   = model::Program3d::new();
+    let terrain_program = terrain::ground::Program::new();
+    let water_program   = terrain::water::Program::new();
+    let model_program3d = model::Program3d::new();
     
     println!("Creating spritesheets");
     let mut max_texture_size: GLint = 0;
     unsafe {
         gl::GetIntegerv(gl::MAX_TEXTURE_SIZE, &mut max_texture_size);
     }
-    let texture_size: u32 = cmp::min(max_texture_size as u32, 2048);
+    let texture_size: usize = cmp::min(max_texture_size as usize, 2048);
     println!("Texture size: {}", texture_size);
-    let spritesheet = Spritesheet::load_dir(
+    let spritesheet = SpriteSheet::load_dir(
         texture_size, texture_size,
         &Path::new("assets/sprites"),
         &Default::default()
@@ -145,27 +145,14 @@ fn main() {
     
     //let mut debug_lines = gldebug::DebugLines::new();
     
-    /*mouse_tree.add_to_debug_lines(&mut debug_lines, 0, &vec!(
-        (1.0, 0.0, 0.0),
-        (0.0, 1.0, 0.0),
-        (0.0, 0.0, 1.0),
-        (1.0, 1.0, 0.0),
-        (0.0, 1.0, 1.0),
-        (1.0, 0.0, 1.0)
-    ));*/
-    
-    /*debug_lines.add_segment(
-        Point3::new(0.0, 0.0, 0.0),
-        Point3::new(128.0, 0.0, 0.0),
-        1.0, 0.0, 70.0,
-        1.0, 0.0, 70.0,
-    );
-    debug_lines.add_segment(
-        Point3::new(0.0, 0.0, 0.0),
-        Point3::new(0.0, 128.0, 0.0),
-        0.0, 1.0, 70.0,
-        0.0, 1.0, 70.0,
-    );*/
+    // Temporary code for testing purposes.
+    // Put this inside a block so the mutable borrow of the chunk expires.
+    {
+        let mut chunk = world.chunks[0][0].borrow_mut();
+        let mut overlay = &mut chunk.overlay;
+        overlay.set(0, 0, Layer::Zero, 0, 0);
+        overlay.set(1, 0, Layer::Zero, 1, 0);
+    }
     
     println!("Starting main loop");
     while !window.should_close() {

@@ -38,7 +38,7 @@ impl MetaThing {
             let author_name = tryln!(read_string_16(&mut file));
             let model_name = tryln!(read_string_16(&mut file));
             let key: String = format!("{}-{}", author_name, model_name);
-            let meta_model: &Rc<MetaModel> = match meta_models_map.get(key.as_str()) {
+            let meta_model: &Rc<MetaModel> = match meta_models_map.get(&key) {
                 Some(ref mm) => { mm },
                 None => { return Err((
                     io::Error::new(

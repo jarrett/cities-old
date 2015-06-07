@@ -1,5 +1,7 @@
-pub mod program;
-pub mod source;
+// The terrain module provides the textures and shaders for ground and water.
+// It also provides the mechanisms for loading terrain data.
 
-pub use self::program::Program;
-pub use self::source::Source;
+mod texture;
+pub mod source;
+pub mod ground;
+pub mod water;

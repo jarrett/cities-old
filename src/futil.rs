@@ -1,9 +1,11 @@
 #![macro_use]
 
 use cgmath::{Point, Point2, Point3, Vector2, Vector3};
+use std::fs;
 use std::fs::File;
 use std::io;
 use std::io::{Read, Write};
+use std::path::{Path, PathBuf};
 use byteorder::{ReadBytesExt, WriteBytesExt, BigEndian};
 
 pub type IoErrorLine = (io::Error, &'static str, u32);
@@ -24,7 +26,7 @@ pub fn write_str_16(file: &mut File, string: &str) -> Result<(usize), io::Error>
 
 #[allow(dead_code)]
 pub fn write_string_16(file: &mut File, string: &String) -> Result<(usize), io::Error> {
-    write_str_16(file, string.as_str())
+    write_str_16(file, &string)
 }
 
 #[allow(dead_code)]
@@ -65,4 +67,20 @@ pub fn write_point_3(file: &mut File, v: &Point3<f32>) -> Result<(), io::Error> 
     try!(file.write_f32::<BigEndian>(v.y));
     try!(file.write_f32::<BigEndian>(v.z));
     Ok(())
+}
+
+// Walk a directory, filtering by the given extension.
+pub fn walk_ext(path: &Path, ext: &str) -> Result<Vec<PathBuf>, IoErrorLine> {
+    let walk = tryln!(fs::walk_dir(path));
+    let mut matched_paths: Vec<PathBuf> = Vec::new();
+    for entry in walk {
+        let path: &PathBuf = &entry.unwrap().path();
+        match path.extension() {
+            Some(os_str) if os_str == ext => {
+                matched_paths.push(path.clone());
+            },
+            _ => ()
+        }
+    }
+    Ok(matched_paths)
 }

@@ -6,7 +6,7 @@ use std::boxed::Box;
 // Packed structs. Those that didn't fit stay in the passed-in vector.
 // 
 // Call sort_for_packing on the vector before you pass it in for the first time.
-pub fn pack_some<T: WidthHeight>(width: u32, height: u32, items_to_pack: &mut Vec<T>) -> Vec<Packed<T>> {
+pub fn pack_some<T: WidthHeight>(width: usize, height: usize, items_to_pack: &mut Vec<T>) -> Vec<Packed<T>> {
     let mut tree = Node::new(Rectangle {min_x: 0, min_y: 0, width: width, height: height});
     let mut items_packed: Vec<Packed<T>> = Vec::new();
     for item in items_to_pack.drain(..) {
@@ -34,15 +34,15 @@ pub fn sort_for_packing<T: WidthHeight>(items_to_pack: &mut Vec<T>) {
 }
 
 pub trait WidthHeight {
-    fn width(&self) -> u32;
-    fn height(&self) -> u32;
+    fn width(&self) -> usize;
+    fn height(&self) -> usize;
 }
 
 #[derive(Debug, PartialEq)]
 pub struct Packed<T: WidthHeight> {
-    pub inner: T, // The object to pack. Typically an image.
-    pub min_x: u32, // The X coord within the packed image.
-    pub min_y: u32  // The Y coord within the packed image.
+    pub inner: T,     // The object to pack. Typically an image.
+    pub min_x: usize, // The X coord within the packed image.
+    pub min_y: usize  // The Y coord within the packed image.
 }
 
 impl <T: WidthHeight> Packed<T> {
@@ -66,7 +66,7 @@ impl Node {
     // 
     // This is recursive. You should call it on the root node. The final rectangle will
     // be passed back up the stack.
-    pub fn add(&mut self, width: u32, height: u32) -> Option<Rectangle> {
+    pub fn add(&mut self, width: usize, height: usize) -> Option<Rectangle> {
         if self.is_split {
             // This node has already been split up, so we need to go deeper.
             // Arbitrarily, we try to fit the added rectangle into the right side first.
@@ -141,19 +141,19 @@ impl Node {
 }
 
 struct Rectangle {
-    min_x:  u32,
-    min_y:  u32,
-    width:  u32,
-    height: u32
+    min_x:  usize,
+    min_y:  usize,
+    width:  usize,
+    height: usize
 }
 
 impl Rectangle {
-    fn min_x(&self)  -> u32 { self.min_x }
-    fn min_y(&self)  -> u32 { self.min_y }
-    fn max_x(&self)  -> u32 { self.min_x + self.width - 1 }
-    fn max_y(&self)  -> u32 { self.min_y + self.height - 1 }
-    fn width(&self)  -> u32 { self.width }
-    fn height(&self) -> u32 { self.height }
+    fn min_x(&self)  -> usize { self.min_x }
+    fn min_y(&self)  -> usize { self.min_y }
+    fn max_x(&self)  -> usize { self.min_x + self.width - 1 }
+    fn max_y(&self)  -> usize { self.min_y + self.height - 1 }
+    fn width(&self)  -> usize { self.width }
+    fn height(&self) -> usize { self.height }
 }
 
 #[cfg(test)]
@@ -161,10 +161,10 @@ mod tests {
     use super::{Packed, WidthHeight, pack_some, sort_for_packing};
     
     #[derive(Debug, PartialEq)]
-    struct MockImage { w: u32, h: u32 }
+    struct MockImage { w: usize, h: usize }
     impl WidthHeight for MockImage {
-        fn width(&self)  -> u32 { self.w }
-        fn height(&self) -> u32 { self.h }
+        fn width(&self)  -> usize { self.w }
+        fn height(&self) -> usize { self.h }
     }
     
     #[test]

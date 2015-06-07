@@ -3,10 +3,10 @@ use image;
 use image::GenericImage;
 
 pub trait Source {
-    fn x_verts(&self) -> u32;
-    fn y_verts(&self) -> u32;
+    fn x_verts(&self) -> usize;
+    fn y_verts(&self) -> usize;
     
-    fn vert_z_at(&self, abs_x: u32, abs_y: u32) -> f32;
+    fn vert_z_at(&self, abs_x: usize, abs_y: usize) -> f32;
 }
 
 pub struct ImageSource {
@@ -22,17 +22,17 @@ impl ImageSource {
 }
 
 impl Source for ImageSource {
-    fn x_verts(&self) -> u32 {
+    fn x_verts(&self) -> usize {
         let (x_verts, _) = self.image.dimensions();
-        x_verts
+        x_verts as usize
     }
     
-    fn y_verts(&self) -> u32 {
+    fn y_verts(&self) -> usize {
         let (_, y_verts) = self.image.dimensions();
-        y_verts
+        y_verts as usize
     }
     
-    fn vert_z_at(&self, abs_x: u32, abs_y: u32) -> f32 {
-        self.image.get_pixel(abs_x, abs_y)[0] as f32 * self.z_scale
+    fn vert_z_at(&self, abs_x: usize, abs_y: usize) -> f32 {
+        self.image.get_pixel(abs_x as u32, abs_y as u32)[0] as f32 * self.z_scale
     }
 }

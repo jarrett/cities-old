@@ -1,5 +1,8 @@
 doc/tmp/*
 assets/sprites/*
+!assets/sprites/.gitkeep
+assets/overlays/*
+!assets/overlays/.gitkeep
 saves/* 
 !saves/.gitkeep
 

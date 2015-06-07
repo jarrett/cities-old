@@ -5,7 +5,7 @@ use gl::types::*;
 
 use glutil;
 use texture;
-use texture::Texture;
+use super::texture::Texture;
 
 pub struct Program {
     pub id:             GLuint,

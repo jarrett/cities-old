@@ -1,29 +1,13 @@
-use std::default::Default;
 use std::path::Path;
 use gl;
 use gl::types::*;
 use image;
 use image::GenericImage;
-use libc::{c_void};
+use libc::c_void;
 
-pub struct Config {
-    pub min_filter: GLenum,
-    pub mag_filter: GLenum,
-    pub wrap_s: GLenum,
-    pub wrap_t: GLenum,
-    pub max_level: GLint
-}
+use texture::Config;
 
-impl Default for Config {
-    fn default() -> Config {
-        Config {
-            min_filter: gl::LINEAR_MIPMAP_LINEAR, mag_filter: gl::LINEAR,
-            wrap_s: gl::REPEAT, wrap_t: gl::REPEAT, max_level: 4
-        }
-    }
-}
-
-pub struct Texture {    
+pub struct Texture {
     pub id: GLuint,
     pub width: u32,
     pub height: u32
