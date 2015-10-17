@@ -1,9 +1,7 @@
-#![feature(core)]
-#![feature(collections)]
-#![feature(collections_drain)]
-#![feature(convert)]
+#![feature(vec_push_all)]
 #![feature(fs_walk)]
-#![feature(std_misc)]
+#![feature(drain)]
+#![feature(convert)]
 
 extern crate glfw;
 extern crate gl;

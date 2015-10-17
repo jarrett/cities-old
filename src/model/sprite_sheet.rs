@@ -60,13 +60,19 @@ impl SpriteSheet {
             width: width, height: height, by_name: HashMap::new(), texture_ids: Vec::new()
         };
         
-        let mut images_to_pack: Vec<ImageWrapper> = paths.iter().map(|path: &PathBuf| {
-            let image: DynamicImage = image::open(&path).unwrap();
-            ImageWrapper { inner: image, path: path.clone() }
+        let mut images_to_pack: Vec<ImageWrapper> = paths.iter().filter_map(|path: &PathBuf| {
+            // Ignore any images that fail to open.
+            if let Ok(image) = image::open(&path) {
+                Some(ImageWrapper { inner: image, path: path.clone() })
+            } else {
+                None
+            }
         }).collect();
         
         sort_for_packing(&mut images_to_pack);
         
+        // Generate one or more OpenGL textures. Each iteration, we remove from
+        // images_to_pack as many sprites as we can fit in a single texture.
         while !images_to_pack.is_empty() {
             sheet.pack_one_texture(width, height, config, &mut images_to_pack);
         }
@@ -90,12 +96,12 @@ impl SpriteSheet {
         let mut packed_images = pack_some(width, width, &mut images_to_pack);
     
         // RGBA requires four bytes per pixel.
-        let mut buffer: Vec<u8> = iter::repeat(255).take((width * height * 4) as usize).collect();
+        let mut buffer: Vec<u8> = iter::repeat(255).take(width * height * 4).collect();
         
         for packed in packed_images.drain(..) {
             let (min_x, min_y): (usize, usize)        = (packed.min_x, packed.min_y);
             let wrapper:        ImageWrapper          = packed.into_inner();
-            let name:           String                = String::from_str(wrapper.path.file_stem().unwrap().to_str().unwrap());
+            let name:           String                = String::from(wrapper.path.file_stem().unwrap().to_str().unwrap());
             let img:            RgbaImage             = wrapper.into_inner().to_rgba();
             let img_w:          usize                 = img.width() as usize;
             let img_h:          usize                 = img.height() as usize;
@@ -110,8 +116,8 @@ impl SpriteSheet {
                 // The offset into the buffer for the first pixel in this row.
                 let row_offset = (abs_y * width + min_x) * 4;
                 for rel_x in 0..img_w {
-                    let buffer_idx = (row_offset + rel_x * 4) as usize;
-                    let img_idx    = ((rel_y * img_w + rel_x) * 4) as usize;
+                    let buffer_idx = row_offset + rel_x * 4;
+                    let img_idx    = (rel_y * img_w + rel_x) * 4;
                     buffer[buffer_idx + 0] = img_raw[img_idx + 0];
                     buffer[buffer_idx + 1] = img_raw[img_idx + 1];
                     buffer[buffer_idx + 2] = img_raw[img_idx + 2];
@@ -172,7 +178,7 @@ impl SpriteSheet {
     
     pub fn format_all(&self) -> String {
         let keys: Vec<String> = self.by_name.keys().cloned().collect();
-        keys.connect(", ")
+        keys.join(", ")
     }
 }
 

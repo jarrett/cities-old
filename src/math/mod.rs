@@ -1,5 +1,5 @@
-use std::cmp;
 use std::cmp::PartialOrd;
+use std::cmp::Ordering::*;
 use cgmath::{Point3, Triangle};
 
 mod aabb;
@@ -19,7 +19,12 @@ pub fn in_interval<T: PartialOrd>(v: T, min: T, max: T) -> bool {
 // Returns the minimum Some value. Returns None if both values are None.
 pub fn min_opts<T: PartialOrd>(opt_a: Option<T>, opt_b: Option<T>) -> Option<T> {
     match (opt_a, opt_b) {
-        (Some(a), Some(b)) => cmp::partial_min(a, b),
+        (Some(a), Some(b)) => match a.partial_cmp(&b) {
+            Some(Less)    => Some(a),
+            Some(Greater) => Some(b),
+            Some(Equal)   => Some(a),
+            None => None
+        },
         (Some(a), None)    => Some(a),
         (None,    Some(b)) => Some(b),
         (None,    None)    => None
@@ -29,7 +34,12 @@ pub fn min_opts<T: PartialOrd>(opt_a: Option<T>, opt_b: Option<T>) -> Option<T> 
 // Returns the maximum Some value. Returns None if both values are None.
 pub fn max_opts<T: PartialOrd>(opt_a: Option<T>, opt_b: Option<T>) -> Option<T> {
     match (opt_a, opt_b) {
-        (Some(a), Some(b)) => cmp::partial_max(a, b),
+        (Some(a), Some(b)) => match a.partial_cmp(&b) {
+            Some(Less)    => Some(b),
+            Some(Greater) => Some(a),
+            Some(Equal)   => Some(a),
+            None => None
+        },
         (Some(a), None)    => Some(a),
         (None,    Some(b)) => Some(b),
         (None,    None)    => None
@@ -46,7 +56,7 @@ pub fn quad_to_tris(quad: Quad) -> (Triangle<Point3<f32>>, Triangle<Point3<f32>>
 
 #[cfg(test)]
 mod tests {
-    use std::num::Float;
+    use std::f32;
     use super::{in_interval, min_opts, max_opts};
     
     #[test]
@@ -64,13 +74,13 @@ mod tests {
         assert!(!in_interval(2.0, 3.0, 1.0));
         
         // v is NaN.
-        assert!(!in_interval(Float::nan(), 1.0, 2.0));
+        assert!(!in_interval(f32::NAN, 1.0, 2.0));
         
         // min is NaN.
-        assert!(!in_interval(1.0, Float::nan(), 2.0));
+        assert!(!in_interval(1.0, f32::NAN, 2.0));
         
         // max is Nan.
-        assert!(!in_interval(2.0, 1.0, Float::nan()));
+        assert!(!in_interval(2.0, 1.0, f32::NAN));
     }
     
     #[test]
@@ -89,5 +99,23 @@ mod tests {
         
         // a and b are None.
         assert_eq!(None, min_opts::<f32>(None, None));
+    }
+    
+    #[test]
+    fn test_max_opts() {
+        // a < b.
+        assert_eq!(Some(2.0), max_opts(Some(1.0), Some(2.0)));
+        
+        // b < a.
+        assert_eq!(Some(2.0), max_opts(Some(2.0), Some(1.0)));
+        
+        // a is None.
+        assert_eq!(Some(1.0), max_opts(None, Some(1.0)));
+        
+        // b is None.
+        assert_eq!(Some(1.0), max_opts(Some(1.0), None));
+        
+        // a and b are None.
+        assert_eq!(None, max_opts::<f32>(None, None));
     }
 }

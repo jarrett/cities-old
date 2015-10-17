@@ -48,7 +48,7 @@ pub fn make_program(vert_path: &Path, frag_path: &Path) -> GLuint {
             let mut log_length: GLint = 0;
             gl::GetProgramiv(program, gl::INFO_LOG_LENGTH, &mut log_length);
             let s: String = iter::repeat(' ').take(log_length as usize).collect();
-            let c_str: CString = CString::new(s.as_str()).unwrap();
+            let c_str: CString = CString::new(s).unwrap();
             gl::GetProgramInfoLog(
                 program,
                 log_length,
@@ -78,7 +78,7 @@ pub fn make_shader(path: &Path, shader_type: GLenum) -> GLuint {
             Err(why) => panic!("couldn't read {}: {}", display, why.description()),
             _ => {}
         };
-        let src_c_str: CString = CString::new(source.as_str()).unwrap();
+        let src_c_str: CString = CString::new(source).unwrap();
     
         // Create and compile the shader.
         let shader: GLuint = gl::CreateShader(shader_type);
@@ -97,7 +97,7 @@ pub fn make_shader(path: &Path, shader_type: GLenum) -> GLuint {
           let mut log_length: GLint = 0;
           gl::GetShaderiv(shader, gl::INFO_LOG_LENGTH, &mut log_length);
           let s: String = iter::repeat(' ').take(log_length as usize).collect();
-          let c_str: CString = CString::new(s.as_str()).unwrap();
+          let c_str: CString = CString::new(s).unwrap();
           gl::GetShaderInfoLog(
             shader,
             log_length,

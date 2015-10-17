@@ -208,7 +208,7 @@ impl MetaModel {
 mod tests {
     use std::path::Path;
     use std::default::Default;
-    use texture::Spritesheet;
+    use model::SpriteSheet;
     use super::MetaModel;
     
     #[test]

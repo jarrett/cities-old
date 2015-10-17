@@ -107,9 +107,7 @@ mod tests {
     use std::path::Path;
     use std::default::Default;
     use super::MetaThing;
-    use model::MetaModel;
-    use model::MetaModelsMap;
-    use texture::Spritesheet;
+    use model::{MetaModel, MetaModelsMap, SpriteSheet};
     
     #[test]
     fn test_from_file() {
