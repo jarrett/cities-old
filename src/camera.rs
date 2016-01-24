@@ -1,5 +1,6 @@
 use std::ops::Neg;
-use cgmath::{Rad, rad, Point, Point2, Point3, Vector2, Vector4, Matrix, Matrix3, Matrix4, Ortho, Ray3};
+use cgmath::{Rad, rad, Point, Point2, Point3, Vector, Vector2, Vector4, Matrix, Matrix3, Matrix4, Ortho, Ray3};
+use glfw::{Window, Action, Key};
 
 // 28 degrees on the Z axis.
 static CAMERA_TILT: Rad<f32> = Rad { s: 3.97935069f32 };
@@ -15,15 +16,17 @@ pub struct Camera {
     pub transform: Matrix4<f32>,
     pub inverse: Matrix4<f32>,
     pub width: u16,
-    pub height: u16
+    pub height: u16,
+    q_down: bool,
+    e_down: bool,
 }
 
 impl Camera {
     pub fn new(width: u16, height: u16, zoom: f32) -> Camera {
         let mut cam = Camera {
             z_rotation: rad(0f32), orbit: 3, focus: Vector2 {x: 0f32, y: 0f32},
-            zoom: zoom, transform: Matrix4::identity(), inverse: Matrix4::identity(),
-            width: width, height: height
+            zoom: zoom, transform: Matrix4::one(), inverse: Matrix4::one(),
+            width: width, height: height, q_down: false, e_down: false
         };
         cam.orbit_to(0); // Rebuilds model-view.
         cam.rebuild_matrices();
@@ -62,8 +65,53 @@ impl Camera {
     pub fn pan(&mut self, amount: &Vector2<f32>) {
         let amount_4 = amount.extend(0.0).extend(0.0);
         let amount_2 = self.inverse.mul_v(&amount_4).truncate().truncate();
-        self.focus = self.focus + amount_2;
+        self.focus = self.focus.add_v(&amount_2);
         self.rebuild_matrices();
+    }
+    
+    pub fn receive_input(&mut self, window: &Window) {
+        // Orbit camera with Q and E.
+        if window.get_key(Key::Q) == Action::Press {
+            self.q_down = true;
+        } else {
+            if self.q_down {
+                self.decrement_orbit();
+                self.q_down = false;
+            }
+        }
+        if window.get_key(Key::E) == Action::Press {
+            self.e_down = true;
+            
+        } else {
+            if self.e_down {
+                self.increment_orbit();
+                self.e_down = false;
+            }
+        }
+        
+        // Pan camera with W and S.
+        if window.get_key(Key::W) == Action::Press {
+            self.pan(&Vector2::new(0.0, 0.02));
+        }
+        if window.get_key(Key::S) == Action::Press {
+            self.pan(&Vector2::new(0.0, -0.02));
+        }
+        
+        // Pan camera with A and D.
+        if window.get_key(Key::A) == Action::Press {
+            self.pan(&Vector2::new(-0.02, 0.0));
+        }
+        if window.get_key(Key::D) == Action::Press {
+            self.pan(&Vector2::new(0.02, 0.0));
+        }
+        
+        // Zoom camera with Z and X.
+        if window.get_key(Key::Z) == Action::Press {
+            self.zoom_by(1.05);
+        }
+        if window.get_key(Key::X) == Action::Press {
+            self.zoom_by(0.9523809524);
+        }
     }
     
     // Converts a point in window space to a line in world space.

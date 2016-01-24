@@ -4,23 +4,12 @@ name = "cities"
 version = "0.0.1"
 authors = ["Jarrett Colby <jarrettcolby@gmail.com>"]
 
-[dependencies.num]
+[dependencies]
+gl = {git = "https://github.com/bjz/gl-rs"}
+glfw = {git = "https://github.com/bjz/glfw-rs.git"}
+cgmath = {git = "https://github.com/jarrett/cgmath-rs.git"}
+freetype-rs = "*"
+image = "*"
 num = "*"
-
-[dependencies.gl]
-git = "https://github.com/bjz/gl-rs"
-
-[dependencies.glfw]
-git = "https://github.com/bjz/glfw-rs.git"
-
-[dependencies.cgmath]
-git = "https://github.com/jarrett/cgmath-rs.git"
-
-[dependencies.image]
-git = "https://github.com/PistonDevelopers/image.git"
-
-[dependencies]
 libc = "*"
-
-[dependencies]
 byteorder = "*"

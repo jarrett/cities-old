@@ -34,7 +34,7 @@ pub struct World {
 impl World {
     pub fn new<T: terrain::source::Source>(
         name: String, terrain_source: T,
-        terrain_program: &terrain::ground::Program, water_program: &terrain::water::Program,
+        ground_program: &terrain::ground::Program, water_program: &terrain::water::Program,
         chunk_x_size: usize, chunk_y_size: usize
       ) -> World {
         let mut world = World {
@@ -77,7 +77,7 @@ impl World {
                 // This is where we finally initialize the chunks themselves.
                 let min_x: usize = chunk_x * world.chunk_x_size;
                 let min_y: usize = chunk_y * world.chunk_y_size;
-                let mut chunk: Chunk = Chunk::new(terrain_program, water_program, min_x, min_y, world.chunk_x_verts, world.chunk_y_verts);
+                let mut chunk: Chunk = Chunk::new(ground_program, water_program, min_x, min_y, world.chunk_x_verts, world.chunk_y_verts);
                 
                 // Drill down deeper: Go through the full X/Y range of each chunk and set the height
                 // for each vertex.
@@ -115,7 +115,7 @@ impl World {
     }
     
     pub fn from_file(
-        terrain_program: &terrain::ground::Program, water_program: &terrain::water::Program,
+        ground_program: &terrain::ground::Program, water_program: &terrain::water::Program,
         chunk_x_size: usize, chunk_y_size: usize,
         meta_things_map: &MetaThingsMap, path: &Path
     ) -> Result<World, IoErrorLine> {
@@ -133,7 +133,7 @@ impl World {
         let terrain_path = Path::new(&terrain_path);
         let z_scale: f32 = tryln!(file.read_f32::<BigEndian>());
         let terrain_source = terrain::source::ImageSource::new(&terrain_path, z_scale);
-        let mut world = World::new(name, terrain_source, terrain_program, water_program, chunk_x_size, chunk_y_size);
+        let mut world = World::new(name, terrain_source, ground_program, water_program, chunk_x_size, chunk_y_size);
         
         // Read meta things table.
         tryln!(file.read_u32::<BigEndian>()); // Table size.
@@ -170,7 +170,7 @@ impl World {
     pub fn to_file(&self, path: &Path) -> Result<(), IoErrorLine> {
         let mut file = tryln!(File::create(path));
         
-        // Write header;
+        // Write header.
         tryln!(file.write_u16::<BigEndian>(48 + self.name.len() as u16)); // Header size.
         tryln!(file.write_u16::<BigEndian>(0)); // Version.
         tryln!(write_string_16(&mut file, &self.name));
@@ -258,11 +258,11 @@ impl World {
         }
     }
     
-    pub fn draw(&self, camera: &Camera, terrain_program: &terrain::ground::Program, water_program: &terrain::water::Program, mouse_hit: &Option<mouse::Hit>) {
+    pub fn draw(&self, camera: &Camera, ground_program: &terrain::ground::Program, water_program: &terrain::water::Program, mouse_hit: &Option<mouse::Hit>) {
         // Draw the terrain first.
         for inner_vec in self.chunks.iter() {
             for chunk in inner_vec.iter() {
-                chunk.borrow().draw_terrain(camera, terrain_program, mouse_hit);
+                chunk.borrow().draw_terrain(camera, ground_program, mouse_hit);
             }
         }
         

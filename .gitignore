@@ -3,6 +3,8 @@ assets/sprites/*
 !assets/sprites/.gitkeep
 assets/overlays/*
 !assets/overlays/.gitkeep
+assets/fonts/*
+!assets/fonts/.gitkeep
 saves/* 
 !saves/.gitkeep
 
