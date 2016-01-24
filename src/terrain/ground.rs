@@ -3,12 +3,11 @@ use std::path::Path;
 use gl;
 use gl::types::*;
 
-use glutil;
-use texture;
-use super::texture::Texture;
+use opengl;
+use opengl::{Texture2d, TextureConfig};
 
 pub struct Program {
-    pub id:             GLuint,
+    pub p:                  opengl::Program,
     
     // Uniform locations.
     pub camera_idx:         GLint,
@@ -24,55 +23,58 @@ pub struct Program {
     pub normal_idx:         GLuint,
     
     // Textures.
-    pub underwater_tex:     Texture,
-    pub flat_tex:           Texture,
-    pub slope_tex:          Texture,
-    pub cliff_tex:          Texture
+    pub underwater_tex:     Texture2d,
+    pub flat_tex:           Texture2d,
+    pub slope_tex:          Texture2d,
+    pub cliff_tex:          Texture2d
 }
 
 impl Program {
     pub fn new() -> Program {
-        let id = glutil::make_program(&Path::new("glsl/terrain.vert.glsl"), &Path::new("glsl/terrain.frag.glsl"));
-        let tex_cfg: texture::Config = Default::default();
-        Program {
-            id:             id,
+        let tex_cfg: TextureConfig = Default::default();
+        let mut program = Program {
+            p: opengl::Program::new(
+                &Path::new("glsl/terrain.vert.glsl"),
+                &Path::new("glsl/terrain.frag.glsl")
+            ),
             
-            camera_idx:         glutil::get_uniform_location(id, "camera"),
+            camera_idx: 0, underwater_idx: 0, flat_idx: 0, slope_idx: 0, cliff_idx: 0,
+            mouse_in_idx: 0, mouse_position_idx: 0, position_idx: 0, normal_idx: 0,
             
-            underwater_idx:     glutil::get_uniform_location(id, "underwater"),
-            flat_idx:           glutil::get_uniform_location(id, "plain"),
-            slope_idx:          glutil::get_uniform_location(id, "slope"),
-            cliff_idx:          glutil::get_uniform_location(id, "cliff"),
-            mouse_in_idx:       glutil::get_uniform_location(id, "mouseIn"),
-            mouse_position_idx: glutil::get_uniform_location(id, "mousePosition"),
+            underwater_tex: Texture2d::from_file(&Path::new("assets/textures/underwater.jpg"), &tex_cfg),
+            flat_tex:       Texture2d::from_file(&Path::new("assets/textures/plain.jpg"), &tex_cfg),
+            slope_tex:      Texture2d::from_file(&Path::new("assets/textures/slope.jpg"), &tex_cfg),
+            cliff_tex:      Texture2d::from_file(&Path::new("assets/textures/cliff.jpg"), &tex_cfg)
+        };
+        program.configure_indices();
+        program
+    }
+    
+    pub fn activate_textures(&self) {
+        unsafe {
+            self.underwater_tex.activate(0);
+            gl::Uniform1i(self.underwater_idx, 0);
             
-            position_idx:       glutil::get_attrib_location( id, "position"),
-            normal_idx:         glutil::get_attrib_location( id, "normal"),
+            self.flat_tex.activate(1);
+            gl::Uniform1i(self.flat_idx, 1);
             
-            underwater_tex:     Texture::new(&Path::new("assets/textures/underwater.jpg"), &tex_cfg),
-            flat_tex:           Texture::new(&Path::new("assets/textures/plain.jpg"), &tex_cfg),
-            slope_tex:          Texture::new(&Path::new("assets/textures/slope.jpg"), &tex_cfg),
-            cliff_tex:          Texture::new(&Path::new("assets/textures/cliff.jpg"), &tex_cfg)
+            self.slope_tex.activate(2);
+            gl::Uniform1i(self.slope_idx, 2);
+            
+            self.cliff_tex.activate(3);
+            gl::Uniform1i(self.cliff_idx, 3);
         }
     }
     
-    pub fn bind_textures(&self) {
-        unsafe {
-            gl::ActiveTexture(gl::TEXTURE0);
-            gl::BindTexture(gl::TEXTURE_2D, self.underwater_tex.id);
-            gl::Uniform1i(self.underwater_idx, 0);
-  
-            gl::ActiveTexture(gl::TEXTURE1);
-            gl::BindTexture(gl::TEXTURE_2D, self.flat_tex.id);
-            gl::Uniform1i(self.flat_idx, 1);
-  
-            gl::ActiveTexture(gl::TEXTURE2);
-            gl::BindTexture(gl::TEXTURE_2D, self.slope_tex.id);
-            gl::Uniform1i(self.slope_idx, 2);
-  
-            gl::ActiveTexture(gl::TEXTURE3);
-            gl::BindTexture(gl::TEXTURE_2D, self.cliff_tex.id);
-            gl::Uniform1i(self.cliff_idx, 3);
-        }
+    fn configure_indices(&mut self) {
+        self.camera_idx         = self.p.get_uniform_location("camera");
+        self.underwater_idx     = self.p.get_uniform_location("underwater");
+        self.flat_idx           = self.p.get_uniform_location("plain");
+        self.slope_idx          = self.p.get_uniform_location("slope");
+        self.cliff_idx          = self.p.get_uniform_location("cliff");
+        self.mouse_in_idx       = self.p.get_uniform_location("mouseIn");
+        self.mouse_position_idx = self.p.get_uniform_location("mousePosition");
+        self.position_idx       = self.p.get_attrib_location( "position");
+        self.normal_idx         = self.p.get_attrib_location( "normal");
     }
 }

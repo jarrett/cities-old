@@ -258,11 +258,16 @@ impl World {
         }
     }
     
-    pub fn draw(&self, camera: &Camera, ground_program: &terrain::ground::Program, water_program: &terrain::water::Program, mouse_hit: &Option<mouse::Hit>) {
+    pub fn draw(
+        &self, camera: &Camera,
+        ground_program: &terrain::ground::Program,
+        water_program: &terrain::water::Program,
+        mouse_hit: &Option<mouse::Hit>
+    ) {
         // Draw the terrain first.
         for inner_vec in self.chunks.iter() {
             for chunk in inner_vec.iter() {
-                chunk.borrow().draw_terrain(camera, ground_program, mouse_hit);
+                chunk.borrow().draw_ground(camera, ground_program, mouse_hit);
             }
         }
         

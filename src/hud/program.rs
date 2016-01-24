@@ -3,10 +3,10 @@ use std::path::Path;
 use gl;
 use gl::types::*;
 
-use glutil;
+use opengl;
 
 pub struct Program {
-    pub id:             GLuint,
+    pub p:              opengl::Program,
     
     // Uniform locations.
     pub sprite_idx:     GLint,
@@ -18,17 +18,15 @@ pub struct Program {
 
 impl Program {
     pub fn new() -> Program {
-        let id = glutil::make_program(
-            &Path::new("glsl/hud.vert.glsl"),
-            &Path::new("glsl/hud.frag.glsl")
-        );
-        
-        Program {
-            id:           id,
-            sprite_idx:   glutil::get_uniform_location(id, "sprite"),
-            position_idx: glutil::get_attrib_location( id, "position"),
-            uv_idx:       glutil::get_attrib_location( id, "uv"),
-        }
+        let mut program = Program {
+            p: opengl::Program::new(
+                &Path::new("glsl/hud.vert.glsl"),
+                &Path::new("glsl/hud.frag.glsl")
+            ),
+            sprite_idx: 0, position_idx: 0, uv_idx: 0
+        };
+        program.configure_indices();
+        program
     }
     
     pub fn bind_textures(&self, texture_id: GLuint) {
@@ -37,5 +35,11 @@ impl Program {
             gl::BindTexture(gl::TEXTURE_2D, texture_id);
             gl::Uniform1i(self.sprite_idx, 0);
         }
+    }
+    
+    fn configure_indices(&mut self) {
+        self.sprite_idx   = self.p.get_uniform_location("sprite");
+        self.position_idx = self.p.get_attrib_location( "position");
+        self.uv_idx       = self.p.get_attrib_location( "uv");
     }
 }

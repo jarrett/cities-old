@@ -7,7 +7,7 @@ use image;
 use image::RgbaImage;
 
 use futil::{IoErrorLine, walk_ext};
-use texture::Config;
+use opengl::TextureConfig;
 
 // The width and height of an overlay sprite, measured in pixels.
 const SPRITE_PIXELS: usize = 64;
@@ -21,7 +21,7 @@ pub struct SpriteSheet {
 }
 
 impl SpriteSheet {
-    pub fn new(paths: &Vec<PathBuf>, config: &Config) -> SpriteSheet {
+    pub fn new(paths: &Vec<PathBuf>, config: &TextureConfig) -> SpriteSheet {
         // RGBA requires four bytes per pixel.
         let mut buffer: Vec<u8> = repeat(255).take(SHEET_PIXELS * SHEET_PIXELS * 4).collect();
         
@@ -77,7 +77,7 @@ impl SpriteSheet {
         sheet
     }
     
-    pub fn load_dir(path: &Path, config: &Config) -> Result<SpriteSheet, IoErrorLine> {
+    pub fn load_dir(path: &Path, config: &TextureConfig) -> Result<SpriteSheet, IoErrorLine> {
         let image_paths = try!(walk_ext(path, "png"));
         Ok(SpriteSheet::new(&image_paths, config))
     }

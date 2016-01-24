@@ -2,10 +2,11 @@ use std::path::Path;
 use gl;
 use gl::types::*;
 
-use glutil;
+use opengl;
+use opengl::Texture2d;
 
 pub struct Program3d {
-    pub id:             GLuint,
+    pub p:              opengl::Program,
     
     // Uniform locations.
     pub camera_idx:     GLint,
@@ -21,27 +22,32 @@ pub struct Program3d {
 
 impl Program3d {
     pub fn new() -> Program3d {
-        let id = glutil::make_program(&Path::new("glsl/model3d.vert.glsl"), &Path::new("glsl/model.frag.glsl"));
-        
-        Program3d {
-            id:             id,
-            
-            camera_idx:     glutil::get_uniform_location(id, "camera"),
-            orbit_idx:      glutil::get_uniform_location(id, "orbit"),
-            direction_idx:  glutil::get_uniform_location(id, "direction"),
-            origin_idx:     glutil::get_uniform_location(id, "origin"),
-            sprite_idx:     glutil::get_uniform_location(id, "sprite"),
-            
-            position_idx:   glutil::get_attrib_location( id, "position"),
-            uv_idx:         glutil::get_attrib_location( id, "uv")
+        let mut program = Program3d {
+            p: opengl::Program::new(&Path::new(
+                "glsl/model3d.vert.glsl"),
+                &Path::new("glsl/model.frag.glsl")
+            ),
+            camera_idx: 0, orbit_idx: 0, direction_idx: 0, origin_idx: 0, sprite_idx: 0,
+            position_idx: 0, uv_idx: 0
+        };
+        program.configure_indices();
+        program
+    }
+    
+    pub fn activate_texture(&self, texture: &Texture2d) {
+        unsafe {
+            texture.activate(0);
+            gl::Uniform1i(self.sprite_idx, 0);
         }
     }
     
-    pub fn bind_textures(&self, texture_id: GLuint) {
-        unsafe {
-            gl::ActiveTexture(gl::TEXTURE0);
-            gl::BindTexture(gl::TEXTURE_2D, texture_id);
-            gl::Uniform1i(self.sprite_idx, 0);
-        }
+    fn configure_indices(&mut self) {
+        self.camera_idx    = self.p.get_uniform_location("camera");
+        self.orbit_idx     = self.p.get_uniform_location("orbit");
+        self.direction_idx = self.p.get_uniform_location("direction");
+        self.origin_idx    = self.p.get_uniform_location("origin");
+        self.sprite_idx    = self.p.get_uniform_location("sprite");
+        self.position_idx  = self.p.get_attrib_location( "position");
+        self.uv_idx        = self.p.get_attrib_location( "uv");
     }
 }

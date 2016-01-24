@@ -19,7 +19,7 @@ impl Element {
         Element {x: x, y: y, w: w, h: h, children: Vec::new()}
     }
     
-    // Be sure to bind the program, VAO, attr buffer, and index buffer first.
+    // Be sure to bind the program, Vao, attr buffer, and index buffer first.
     pub unsafe fn draw(&self) {
         
     }

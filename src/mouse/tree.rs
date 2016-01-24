@@ -7,7 +7,7 @@ use math::{
     split_aabb3_for_quadtree, aabb3_contains_aabb3_xy, aabb3_from_tris,
     ray3_intersects_aabb3, quad_to_tris
 };
-use gldebug::DebugLines;
+use opengl::DebugLines;
 use super::target::{Target, Hit};
 
 pub struct Tree {

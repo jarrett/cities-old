@@ -1,8 +1,34 @@
 use std::option::Option;
 use std::boxed::Box;
 
+#[derive(Debug, PartialEq)]
+pub struct Packed<T: WidthHeight> {
+    pub inner: T,     // The object to pack. Typically an image.
+    pub min_x: usize, // The X coord within the packed image.
+    pub min_y: usize  // The Y coord within the packed image.
+}
+
+pub trait WidthHeight {
+    fn width(&self) -> usize;
+    fn height(&self) -> usize;
+}
+
+struct Node {
+    rc: Rectangle,
+    is_split: bool,
+    down: Option<Box<Node>>,
+    right: Option<Box<Node>>
+}
+
+struct Rectangle {
+    min_x:  usize,
+    min_y:  usize,
+    width:  usize,
+    height: usize
+}
+
 // Accepts a vector of items with the WidthHeight trait, typically images. Tries to pack
-// as many of the items as will fit. Returns a a new vector with the items wrapped in
+// as many of the items as will fit. Returns a new vector with the items wrapped in
 // Packed structs. Those that didn't fit stay in the passed-in vector.
 // 
 // Call sort_for_packing on the vector before you pass it in for the first time.
@@ -33,27 +59,8 @@ pub fn sort_for_packing<T: WidthHeight>(items_to_pack: &mut Vec<T>) {
     );
 }
 
-pub trait WidthHeight {
-    fn width(&self) -> usize;
-    fn height(&self) -> usize;
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Packed<T: WidthHeight> {
-    pub inner: T,     // The object to pack. Typically an image.
-    pub min_x: usize, // The X coord within the packed image.
-    pub min_y: usize  // The Y coord within the packed image.
-}
-
 impl <T: WidthHeight> Packed<T> {
     pub fn into_inner(self) -> T { self.inner }
-}
-
-struct Node {
-    rc: Rectangle,
-    is_split: bool,
-    down: Option<Box<Node>>,
-    right: Option<Box<Node>>
 }
 
 impl Node {
@@ -138,13 +145,6 @@ impl Node {
         }
         self.is_split = true;
     }
-}
-
-struct Rectangle {
-    min_x:  usize,
-    min_y:  usize,
-    width:  usize,
-    height: usize
 }
 
 impl Rectangle {

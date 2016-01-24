@@ -26,7 +26,7 @@ use self::allocator::Allocator;
 // find an available slot in the map and claim it, marking it as as used. When a rectangle
 // is dropped, we mark its slot as free.
 
-// The VBO is sized to accomodate this many rectangles.
+// The Vbo is sized to accomodate this many rectangles.
 const BUFFER_SIZE: usize = 256;
 
 struct HUD {
@@ -89,15 +89,13 @@ impl HUD {
     pub fn draw(&self) {
         unsafe {
             gl::BindVertexArray(self.vao);
-            gl::BindBuffer(gl::ARRAY_BUFFER, self.attr_buffer);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.attr_buffer);
-            gl::UseProgram(self.program.id);
+            gl::UseProgram(self.program.p.id);
             for element in self.elements.iter() {
                 element.draw();
             }
             gl::UseProgram(0);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
-            gl::BindBuffer(gl::ARRAY_BUFFER, 0);
             gl::BindVertexArray(0);
         }
     }

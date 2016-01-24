@@ -12,19 +12,19 @@ use image::{GenericImage, DynamicImage, RgbaImage};
 use libc::{c_void};
 use cgmath::{Vector, Vector2};
 
-use texture::Config;
-use model::sprite_pack::{WidthHeight, pack_some, sort_for_packing};
+use opengl::{Texture2d, TextureConfig};
+use super::{WidthHeight, pack_some, sort_for_packing};
 use futil::{IoErrorLine, walk_ext};
 
-pub struct SpriteSheet {
+pub struct Sheet {
     pub width: usize,
     pub height: usize,
     pub by_name: HashMap<String, Rc<Sprite>>,
-    pub texture_ids: Vec<GLuint>
+    pub textures: Vec<Texture2d>
 }
 
 pub struct Sprite {
-    pub texture_id: GLuint,
+    pub texture: Rc<Texture2d>,
     // Offset within the sprite sheet, in the interval (0, 1).
     pub offset: Vector2<GLfloat>,
     // The sprite sheet and the individual sprite have different UV spaces. This scale
@@ -54,10 +54,10 @@ impl WidthHeight for ImageWrapper {
     fn height(&self) -> usize { self.inner.dimensions().1 as usize }
 }
 
-impl SpriteSheet {
-    pub fn new(width: usize, height: usize, paths: &Vec<PathBuf>, config: &Config) -> SpriteSheet {
-        let mut sheet = SpriteSheet {
-            width: width, height: height, by_name: HashMap::new(), texture_ids: Vec::new()
+impl Sheet {
+    pub fn new(width: usize, height: usize, paths: &Vec<PathBuf>, config: &TextureConfig) -> Sheet {
+        let mut sheet = Sheet {
+            width: width, height: height, by_name: HashMap::new(), textures: Vec::new()
         };
         
         let mut images_to_pack: Vec<ImageWrapper> = paths.iter().filter_map(|path: &PathBuf| {
@@ -80,23 +80,34 @@ impl SpriteSheet {
         sheet
     }
     
-    pub fn load_dir(width: usize, height: usize, path: &Path, config: &Config) -> Result<SpriteSheet, IoErrorLine> {
+    pub fn load_dir(width: usize, height: usize, path: &Path, config: &TextureConfig) -> Result<Sheet, IoErrorLine> {
         let image_paths = try!(walk_ext(path, "png"));
-        Ok(SpriteSheet::new(width, height, &image_paths, config))
+        Ok(Sheet::new(width, height, &image_paths, config))
     }
     
-    // Takes a list of images left to pack. Creates a new OpenGL texture and pushes its
-    // ID onto texture_ids. Pops images_to_pack one-by-one until either the vector is
-    // empty or the OpenGL texture can't fit any more sprites.
+    // Takes a list of images left to pack. Creates a new OpenGL texture and pushes it
+    // onto textures. Pops images_to_pack one-by-one until either the vector is empty or
+    // the OpenGL texture can't fit any more sprites.
     // 
     // images_to_pack should have been sorted with sort_for_packing prior to calling this.
-    pub fn pack_one_texture(&mut self, width: usize, height: usize, config: &Config, mut images_to_pack: &mut Vec<ImageWrapper>) {
-        let current_texture_id = SpriteSheet::new_texture(config, &mut self.texture_ids);
+    pub fn pack_one_texture(
+        &mut self,
+        width: usize,
+        height: usize,
+        config: &TextureConfig,
+        mut images_to_pack: &mut Vec<ImageWrapper>
+    ) {
+        let mut current_texture = Texture2d::new(config, width, height);
         
         let mut packed_images = pack_some(width, width, &mut images_to_pack);
     
         // RGBA requires four bytes per pixel.
         let mut buffer: Vec<u8> = iter::repeat(255).take(width * height * 4).collect();
+        
+        // A temporary place to store the sprite data that we generate. After the finished
+        // texture has been uploaded to the GPU, we'll use sprite_data to construct
+        // Sprites and insert them into self.by_name.
+        let mut sprite_data: Vec<(String, Vector2<GLfloat>, Vector2<GLfloat>)> = Vec::new();
         
         for packed in packed_images.drain(..) {
             let (min_x, min_y): (usize, usize)        = (packed.min_x, packed.min_y);
@@ -124,70 +135,49 @@ impl SpriteSheet {
                     buffer[buffer_idx + 3] = img_raw[img_idx + 3];
                 }
             }
+            
+            sprite_data.push((
+                name,
+                // Offset.
+                Vector2::new(
+                    min_x as GLfloat / width as GLfloat,
+                    min_y as GLfloat / height as GLfloat,
+                ),
+                // UV scale.
+                Vector2::new(
+                    img_w as GLfloat / width as GLfloat,
+                    img_h as GLfloat / height as GLfloat
+                )
+            ));
+        }
         
+        current_texture.upload(
+            0, // Mipmap level.
+            gl::RGBA, // Internal format.
+            width,
+            height,
+            gl::RGBA, // Input format.
+            gl::UNSIGNED_BYTE, // Input data type.
+            &buffer,
+            true // Generate mipmaps.
+        );
+        
+        let current_texture_rc = Rc::new(current_texture);
+        
+        for (name, offset, uv_scale) in sprite_data.drain(..) {
             self.by_name.insert(
                 name,
                 Rc::new(Sprite {
-                    texture_id: current_texture_id,
-                    offset: Vector2::new(
-                        min_x as GLfloat / width as GLfloat,
-                        min_y as GLfloat / height as GLfloat,
-                    ),
-                    uv_scale: Vector2::new(
-                        img_w as GLfloat / width as GLfloat,
-                        img_h as GLfloat / height as GLfloat
-                    )
+                    texture: current_texture_rc.clone(),
+                    offset: offset,
+                    uv_scale: uv_scale
                 })
             );
         }
-    
-        unsafe {
-            gl::BindTexture(gl::TEXTURE_2D, current_texture_id);
-            gl::TexImage2D(
-                gl::TEXTURE_2D,     // Target
-                0,                  // Mipmap level.
-                gl::RGBA as GLint,  // Internal format.
-                width as GLint,     // Width.
-                height as GLint,    // Height.
-                0,                  // Border.
-                gl::RGBA,           // Input format.
-                gl::UNSIGNED_BYTE,  // Input data type.
-                buffer.as_ptr() as *const c_void
-            );
-            
-            gl::GenerateMipmap(gl::TEXTURE_2D);
-            gl::BindTexture(gl::TEXTURE_2D, 0);
-        }
-    }
-    
-    pub fn new_texture(config: &Config, texture_ids: &mut Vec<GLuint>) -> GLuint {
-        let mut texture_id: GLuint = 0;
-        unsafe {
-            gl::GenTextures(1, &mut texture_id);
-            gl::BindTexture(gl::TEXTURE_2D, texture_id);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, config.min_filter as GLint);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, config.mag_filter as GLint);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, config.wrap_s as GLint);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, config.wrap_t as GLint);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAX_LEVEL, config.max_level);
-            gl::BindTexture(gl::TEXTURE_2D, 0);
-        }
-        texture_ids.push(texture_id);
-        texture_id
     }
     
     pub fn format_all(&self) -> String {
         let keys: Vec<String> = self.by_name.keys().cloned().collect();
         keys.join(", ")
-    }
-}
-
-impl Drop for SpriteSheet {
-    fn drop(&mut self) {
-        for mut id in self.texture_ids.drain(..) {
-            unsafe {
-                gl::DeleteTextures(1, &mut id);
-            }
-        }
     }
 }

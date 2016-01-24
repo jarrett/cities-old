@@ -3,11 +3,11 @@ use std::path::Path;
 use gl;
 use gl::types::*;
 
-use glutil;
-use super::texture::Texture;
+use opengl;
+use opengl::Texture2d;
 
 pub struct Program {
-    pub id:             GLuint,
+    pub p:              opengl::Program,
     
     // Uniform locations.
     pub camera_idx:     GLint,
@@ -18,30 +18,35 @@ pub struct Program {
     pub depth_idx:      GLuint,
     
     // Textures.
-    pub foam_tex:       Texture
+    pub foam_tex:       Texture2d
 }
 
 impl Program {
     pub fn new() -> Program {
-        let id = glutil::make_program(&Path::new("glsl/water.vert.glsl"), &Path::new("glsl/water.frag.glsl"));
-        Program {
-            id:             id,
-            camera_idx:     glutil::get_uniform_location(id, "camera"),
+        let mut program = Program {
+            p: opengl::Program::new(
+                &Path::new("glsl/water.vert.glsl"),
+                &Path::new("glsl/water.frag.glsl")
+            ),
+            camera_idx: 0, foam_idx: 0, position_idx: 0, depth_idx: 0,
             
-            foam_idx:       glutil::get_uniform_location(id, "foam"),
-            
-            position_idx:   glutil::get_attrib_location( id, "position"),
-            depth_idx:      glutil::get_attrib_location( id, "depth"),
-            
-            foam_tex:       Texture::new(&Path::new("assets/textures/foam.jpg"), &Default::default())
+            foam_tex:       Texture2d::from_file(&Path::new("assets/textures/foam.jpg"), &Default::default())
+        };
+        program.configure_indices();
+        program
+    }
+    
+    pub fn activate_textures(&self) {
+        unsafe {
+            self.foam_tex.activate(0);
+            gl::Uniform1i(self.foam_idx, 0);
         }
     }
     
-    pub fn bind_textures(&self) {
-        unsafe {
-            gl::ActiveTexture(gl::TEXTURE0);
-            gl::BindTexture(gl::TEXTURE_2D, self.foam_tex.id);
-            gl::Uniform1i(self.foam_idx, 0);
-        }
+    fn configure_indices(&mut self) {
+        self.camera_idx   = self.p.get_uniform_location("camera");
+        self.foam_idx     = self.p.get_uniform_location("foam");
+        self.position_idx = self.p.get_attrib_location( "position");
+        self.depth_idx    = self.p.get_attrib_location( "depth");
     }
 }

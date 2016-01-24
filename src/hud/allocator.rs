@@ -1,8 +1,8 @@
 use std::iter::repeat;
 
 pub struct Allocator {
-    // The map of free and used slots in the VBO. Each byte in this array represents one
-    // slot in the VBO, i.e. the space needed for a single Element. True means used;
+    // The map of free and used slots in the Vbo. Each byte in this array represents one
+    // slot in the Vbo, i.e. the space needed for a single Element. True means used;
     // false means free.
     alloc: Vec<bool>,
     
@@ -15,7 +15,7 @@ impl Allocator {
         Allocator {alloc: repeat(false).take(buffer_size).collect(), alloc_idx: 0}
     }
     
-    // Finds the next free slot in the VBO and marks it as used.
+    // Finds the next free slot in the Vbo and marks it as used.
     fn alloc_slot(&mut self) -> usize {
         let mut idx: usize = self.alloc_idx;
         loop {
@@ -27,7 +27,7 @@ impl Allocator {
             if idx == self.alloc_idx {
                 // We searched the entire range, wrapping around and returning to the
                 // start index, and found no free slot. So we're out of space.
-                panic!("all VBO full");
+                panic!("all Vbo full");
             }
             if idx == self.alloc.len() { idx = 0; }
         }

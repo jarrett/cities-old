@@ -12,10 +12,13 @@ use gl;
 use gl::types::*;
 
 use futil::{read_string_16, IoErrorLine};
+use opengl::{Vbo, Vao, Attributes, Indices};
 use model;
 use camera::Camera;
 use super::uvs_for_direction::UvsForDirection;
-use super::{SpriteSheet, Sprite, MetaModelsMap, Buffers};
+use super::{MetaModelsMap, Buffers};
+use sprite;
+use sprite::Sprite;
 
 pub struct MetaModel {
     author_name: String,
@@ -27,11 +30,11 @@ pub struct MetaModel {
     z_size: f32,
     uvs: Vec<UvsForDirection>,
     sprites: Vec<Rc<Sprite>>,
-    index_offset: u16 // Offset into the index VBO.
+    index_offset: u16 // Offset into the index Vbo.
 }
 
 impl MetaModel {
-    pub fn from_file(path: &Path, opt_spritesheet: Option<&SpriteSheet>) -> Result<MetaModel, IoErrorLine> {
+    pub fn from_file(path: &Path, opt_sprite_sheet: Option<&sprite::Sheet>) -> Result<MetaModel, IoErrorLine> {
         let mut file = tryln!(File::open(path));
         
         // Read header.
@@ -53,15 +56,15 @@ impl MetaModel {
         let mut sprites = Vec::with_capacity(8);
         for direction in 0u8..8u8 {
             uvs.push(UvsForDirection::from_file(&mut file));
-            match opt_spritesheet {
-                Some(spritesheet) => {
+            match opt_sprite_sheet {
+                Some(sprite_sheet) => {
                     let sprite_name: String = format!("{}-{}-{}", author_name, model_name, direction);
-                    let sprite: Rc<Sprite> = match spritesheet.by_name.get(&sprite_name) {
+                    let sprite: Rc<Sprite> = match sprite_sheet.by_name.get(&sprite_name) {
                         Some(rc_sprite)  => { rc_sprite.clone() }
                         None => { return Err((
                             io::Error::new(io::ErrorKind::Other, format!(
                                 "Texture not found for {}. Known textures: {}",
-                                sprite_name, spritesheet.format_all()
+                                sprite_name, sprite_sheet.format_all()
                             )),
                             file!(), line!()
                         )); }
@@ -79,14 +82,14 @@ impl MetaModel {
         })
     }
     
-    pub fn load_dir(path: &Path, buffers: &mut Buffers, spritesheet: &SpriteSheet) -> Result<MetaModelsMap, IoErrorLine> {
+    pub fn load_dir(path: &Path, buffers: &mut Buffers, sprite_sheet: &sprite::Sheet) -> Result<MetaModelsMap, IoErrorLine> {
         let mut map: MetaModelsMap = HashMap::new();
         let walk = tryln!(fs::walk_dir(path));
         for entry in walk {
             let path: &PathBuf = &entry.unwrap().path();
             match path.extension() {
                 Some(os_str) if os_str == "model" => {
-                    let mut mm: MetaModel = try!(MetaModel::from_file(path, Some(spritesheet)));
+                    let mut mm: MetaModel = try!(MetaModel::from_file(path, Some(sprite_sheet)));
                     mm.buffer(buffers);
                     let key = format!("{}-{}", mm.author_name(), mm.model_name());
                     map.insert(key, Rc::new(mm));
@@ -117,7 +120,7 @@ impl MetaModel {
         // Positions and UVs get 96 vectors: 4 verts per quad * 3 quads * 8 directions.
         // The positions are 3d vectors; the UVs are 2d.
         for (direction, duvs) in self.uvs.iter().enumerate() {
-            // Offset into the attributes VBO. We'll use this
+            // Offset into the attributes Vbo. We'll use this
             // when we buffer the indices.
             let o = buffers.positions.len() as u16; 
             
@@ -169,14 +172,14 @@ impl MetaModel {
     ) {
         if !buffers.uploaded { panic!("Called draw before uploading buffers"); }
         unsafe {            
-            gl::BindVertexArray(buffers.vao);
-            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, buffers.index_buffer);
-            gl::UseProgram(program.id);
+            buffers.vao.bind();
+            buffers.index_buffer.bind();
+            gl::UseProgram(program.p.id);
             gl::UniformMatrix4fv(program.camera_idx, 1, gl::FALSE, mem::transmute(&camera.transform));
             gl::Uniform3fv(program.origin_idx, 1, mem::transmute(abs_position));
             gl::Uniform1i(program.direction_idx, direction as GLint);
             gl::Uniform1i(program.orbit_idx, camera.orbit as GLint);
-            program.bind_textures(self.sprites[direction as usize].texture_id);
+            program.activate_texture(&self.sprites[direction as usize].texture);
             // The offset into the index buffer determines which sprite to draw. Each
             // sprite has its own set of six triangles.
             // 
@@ -198,8 +201,8 @@ impl MetaModel {
             let offset = self.index_offset + sprite_num * 36;
             gl::DrawElements(gl::TRIANGLES, 18, gl::UNSIGNED_SHORT, offset as *const c_void);
             gl::BindTexture(gl::TEXTURE_2D, 0);
-            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
-            gl::BindVertexArray(0);
+            Vbo::unbind(Indices);
+            Vao::unbind();
         }
     }
 }
@@ -208,7 +211,7 @@ impl MetaModel {
 mod tests {
     use std::path::Path;
     use std::default::Default;
-    use model::SpriteSheet;
+    use sprite::Sheet;
     use super::MetaModel;
     
     #[test]

@@ -6,7 +6,7 @@ use gl::types::*;
 use libc::{c_void};
 use cgmath::{Point, Point3, Ray3};
 
-use glutil;
+use opengl::{Program, Vbo, Vao, Attributes, Indices};
 use camera::Camera;
 
 #[allow(dead_code)]
@@ -15,12 +15,12 @@ pub struct DebugLines {
     pub colors:          Vec<Point3<f32>>,
     pub indices:         Vec<u16>,
     
-    pub position_buffer: GLuint,
-    pub color_buffer:    GLuint,
-    pub index_buffer:    GLuint,
-    pub vao:             GLuint,
+    pub position_buffer: Vbo,
+    pub color_buffer:    Vbo,
+    pub index_buffer:    Vbo,
+    pub vao:             Vao,
     
-    pub program:         GLuint,
+    pub program:         Program,
     pub position_idx:    GLuint,
     pub color_idx:       GLuint,
     pub camera_idx:      GLint,
@@ -33,25 +33,32 @@ impl DebugLines {
     #[allow(dead_code)]
     pub fn new() -> DebugLines {
         let mut lines = DebugLines {
-            positions: Vec::new(), colors: Vec::new(), indices: Vec::new(),
-            position_buffer: 0, color_buffer: 0, index_buffer: 0, vao: 0,
-            program: 0, position_idx: 0, color_idx: 0,
-            camera_idx: 0, next_attr: 0, next_index: 0
+            positions: Vec::new(),
+            colors: Vec::new(),
+            indices: Vec::new(),
+            position_buffer: Vbo::new(Attributes),
+            color_buffer: Vbo::new(Attributes),
+            index_buffer: Vbo::new(Indices),
+            vao: Vao::new(),
+            program: Program::new(
+                &Path::new("glsl/debug-lines.vert.glsl"),
+                &Path::new("glsl/debug-lines.frag.glsl")
+            ),
+            position_idx: 0,
+            color_idx: 0,
+            camera_idx: 0,
+            next_attr: 0,
+            next_index: 0
         };
     
         unsafe {
-            gl::GenBuffers(1,      &mut lines.position_buffer);
-            gl::GenBuffers(1,      &mut lines.color_buffer);
-            gl::GenBuffers(1,      &mut lines.index_buffer);
-            gl::GenVertexArrays(1, &mut lines.vao);
-            lines.program        = glutil::make_program(&Path::new("glsl/debug-lines.vert.glsl"), &Path::new("glsl/debug-lines.frag.glsl"));
-            lines.position_idx   = glutil::get_attrib_location(lines.program, "position");
-            lines.color_idx      = glutil::get_attrib_location(lines.program, "color");
-            lines.camera_idx     = glutil::get_uniform_location(lines.program, "camera");
+            lines.position_idx   = lines.program.get_attrib_location("position");
+            lines.color_idx      = lines.program.get_attrib_location("color");
+            lines.camera_idx     = lines.program.get_uniform_location("camera");
         
-            gl::BindVertexArray(lines.vao);
+            lines.vao.bind();
         
-            gl::BindBuffer(gl::ARRAY_BUFFER, lines.position_buffer);
+            lines.position_buffer.bind();
             gl::EnableVertexAttribArray(lines.position_idx);
             gl::VertexAttribPointer(
               lines.position_idx as GLuint,
@@ -62,7 +69,7 @@ impl DebugLines {
               ptr::null::<c_void>() as *const c_void,
             );
         
-            gl::BindBuffer(gl::ARRAY_BUFFER, lines.color_buffer);
+            lines.color_buffer.bind();
             gl::EnableVertexAttribArray(lines.color_idx);
             gl::VertexAttribPointer(
               lines.color_idx as GLuint,
@@ -73,7 +80,8 @@ impl DebugLines {
               ptr::null::<c_void>() as *const c_void,
             );
         
-            gl::BindVertexArray(0);
+            Vbo::unbind(Attributes);
+            Vao::unbind();
         }
         
         lines
@@ -122,20 +130,20 @@ impl DebugLines {
     pub fn draw(&self, camera: &Camera) {
         unsafe {
             gl::LineWidth(1.0);
-            gl::BindVertexArray(self.vao);
-            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.index_buffer);
-            gl::UseProgram(self.program);
+            self.vao.bind();
+            self.index_buffer.bind();
+            gl::UseProgram(self.program.id);
             gl::UniformMatrix4fv(self.camera_idx, 1, gl::FALSE, mem::transmute(&camera.transform));
             gl::DrawElements(gl::LINES, self.positions.len() as i32, gl::UNSIGNED_SHORT, ptr::null::<c_void>() as *const c_void);
-            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
-            gl::BindVertexArray(0);
+            Vbo::unbind(Indices);
+            Vao::unbind();
         }
     }
     
     #[allow(dead_code)]
     fn buffer(&mut self) {
         unsafe {
-            gl::BindBuffer(gl::ARRAY_BUFFER, self.position_buffer);
+            self.position_buffer.bind();
             gl::BufferData(
               gl::ARRAY_BUFFER,
               // 4 bytes per float, 3 floats per vertex.
@@ -143,9 +151,8 @@ impl DebugLines {
               self.positions.as_ptr() as *const c_void,
               gl::DYNAMIC_DRAW
             );
-            gl::BindBuffer(gl::ARRAY_BUFFER, 0);
         
-            gl::BindBuffer(gl::ARRAY_BUFFER, self.color_buffer);
+            self.color_buffer.bind();
             gl::BufferData(
               gl::ARRAY_BUFFER,
               // 4 bytes per float, 3 floats per vertex.
@@ -153,9 +160,8 @@ impl DebugLines {
               self.colors.as_ptr() as *const c_void,
               gl::DYNAMIC_DRAW
             );
-            gl::BindBuffer(gl::ARRAY_BUFFER, 0);
         
-            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.index_buffer);
+            self.index_buffer.bind();
             gl::BufferData(
               gl::ELEMENT_ARRAY_BUFFER,
               // 2 bytes per index.
@@ -163,7 +169,9 @@ impl DebugLines {
               self.indices.as_ptr() as *const c_void,
               gl::DYNAMIC_DRAW
             );
-            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
+            
+            Vbo::unbind(Attributes);
+            Vbo::unbind(Indices);
         }
     }
 }

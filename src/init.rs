@@ -12,8 +12,9 @@ use futil::IoErrorLine;
 use camera::Camera;
 use world::World;
 use model;
-use model::{SpriteSheet, MetaModel, Program3d};
+use model::{MetaModel, Program3d};
 use thing::{MetaThing, ZSorted};
+use sprite;
 use terrain;
 use mouse;
 
@@ -93,13 +94,13 @@ fn init_programs() -> (terrain::ground::Program, terrain::water::Program, model:
         model::Program3d::new())
 }
 
-fn init_sprite_sheet() -> Result<SpriteSheet, IoErrorLine> {
+fn init_sprite_sheet() -> Result<sprite::Sheet, IoErrorLine> {
     let mut max_texture_size: GLint = 0;
     unsafe {
         gl::GetIntegerv(gl::MAX_TEXTURE_SIZE, &mut max_texture_size);
     }
     let texture_size: usize = min(max_texture_size as usize, 2048);
-    SpriteSheet::load_dir(
+    sprite::Sheet::load_dir(
         texture_size, texture_size,
         &Path::new("assets/sprites"),
         &Default::default()
@@ -110,7 +111,7 @@ fn init_world(
     ground_program: &terrain::ground::Program,
     water_program: &terrain::water::Program,
     model_buffers: &mut model::Buffers,
-    sprite_sheet: &SpriteSheet
+    sprite_sheet: &sprite::Sheet
 ) -> Result<World, IoErrorLine> {
     let meta_models_map = MetaModel::load_dir(
       &Path::new("assets/models"),
