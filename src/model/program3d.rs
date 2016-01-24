@@ -34,10 +34,9 @@ impl Program3d {
         program
     }
     
-    pub fn activate_texture(&self, texture: &Texture2d) {
+    pub fn bind_texture(&self, texture: &Texture2d) {
         unsafe {
-            texture.activate(0);
-            gl::Uniform1i(self.sprite_idx, 0);
+            texture.bind(self.sprite_idx, 0);
         }
     }
     

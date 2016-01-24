@@ -74,10 +74,13 @@ impl Texture2d {
         texture
     }
     
-    // Pass in a texture slot number in the range 0-15.
-    pub fn activate(&self, texture_slot: GLenum) {
+    // Sets the active texture, binds to GL_TEXTURE_2D, and binds to the uniform.
+    // Pass texture_slot is a number in the range 0-15.
+    pub fn bind(&self, uniform_idx: GLint, texture_slot: u8) {
         unsafe {
-            gl::ActiveTexture(gl::TEXTURE0 + texture_slot);
+            gl::ActiveTexture(gl::TEXTURE0 + texture_slot as GLenum);
+            gl::BindTexture(gl::TEXTURE_2D, self.id);
+            gl::Uniform1i(uniform_idx, texture_slot as GLint);
         }
     }
     

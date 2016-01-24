@@ -385,7 +385,7 @@ impl Chunk {
                     gl::Uniform1ui(ground_program.mouse_in_idx, 0);
                 }
             }
-            ground_program.activate_textures();
+            ground_program.bind_textures();
             // Number of elements to draw = number of quads * 6 verts per quad.
             gl::DrawElements(gl::TRIANGLES, ((self.x_verts - 1) * (self.y_verts - 1) * 6) as i32, gl::UNSIGNED_SHORT, ptr::null());
             Vbo::unbind(Indices);
@@ -406,7 +406,7 @@ impl Chunk {
             self.index_buffer.bind();
             gl::UseProgram(water_program.p.id);
             gl::UniformMatrix4fv(water_program.camera_idx, 1, gl::FALSE, mem::transmute(&camera.transform));
-            water_program.activate_textures();
+            water_program.bind_textures();
             // Number of elements to draw = number of quads * 6 verts per quad.
             gl::DrawElements(gl::TRIANGLES, ((self.x_verts - 1) * (self.y_verts - 1) * 6) as i32, gl::UNSIGNED_SHORT, ptr::null());
             Vbo::unbind(Indices);

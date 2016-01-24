@@ -50,19 +50,15 @@ impl Program {
         program
     }
     
-    pub fn activate_textures(&self) {
+    pub fn bind_textures(&self) {
         unsafe {
-            self.underwater_tex.activate(0);
-            gl::Uniform1i(self.underwater_idx, 0);
+            self.underwater_tex.bind(self.underwater_idx, 0);
             
-            self.flat_tex.activate(1);
-            gl::Uniform1i(self.flat_idx, 1);
+            self.flat_tex.bind(self.flat_idx, 1);
             
-            self.slope_tex.activate(2);
-            gl::Uniform1i(self.slope_idx, 2);
+            self.slope_tex.bind(self.slope_idx, 2);
             
-            self.cliff_tex.activate(3);
-            gl::Uniform1i(self.cliff_idx, 3);
+            self.cliff_tex.bind(self.cliff_idx, 3);
         }
     }
     

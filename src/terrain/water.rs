@@ -36,10 +36,9 @@ impl Program {
         program
     }
     
-    pub fn activate_textures(&self) {
+    pub fn bind_textures(&self) {
         unsafe {
-            self.foam_tex.activate(0);
-            gl::Uniform1i(self.foam_idx, 0);
+            self.foam_tex.bind(self.foam_idx, 0);
         }
     }
     

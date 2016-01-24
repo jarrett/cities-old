@@ -179,7 +179,7 @@ impl MetaModel {
             gl::Uniform3fv(program.origin_idx, 1, mem::transmute(abs_position));
             gl::Uniform1i(program.direction_idx, direction as GLint);
             gl::Uniform1i(program.orbit_idx, camera.orbit as GLint);
-            program.activate_texture(&self.sprites[direction as usize].texture);
+            program.bind_texture(&self.sprites[direction as usize].texture);
             // The offset into the index buffer determines which sprite to draw. Each
             // sprite has its own set of six triangles.
             // 
