@@ -1,5 +1,9 @@
+use std::ptr;
+use libc::c_void;
 use gl;
-use gl::types::{GLuint};
+use gl::types::{GLuint, GLint, GLsizei, GLenum};
+
+use super::{Vbo, Attributes};
 
 pub struct Vao {id: GLuint}
 
@@ -10,12 +14,36 @@ impl Vao {
         vao
     }
     
-    pub fn unbind() {
-        unsafe { gl::BindVertexArray(0); }
+    pub unsafe fn unbind() {
+        gl::BindVertexArray(0);
     }
     
-    pub fn bind(&self) {
-        unsafe { gl::BindVertexArray(self.id); }
+    pub unsafe fn bind(&self) {
+        gl::BindVertexArray(self.id);
+    }
+    
+    pub fn attrib(
+        &self,
+        vbo: &Vbo,
+        attrib_idx: GLuint,
+        size: usize,
+        data_type: GLenum,
+        stride: usize,
+        pointer: usize
+    ) {
+        unsafe {
+            vbo.bind();
+            gl::EnableVertexAttribArray(attrib_idx);
+            gl::VertexAttribPointer(
+                attrib_idx,
+                size as GLint,
+                data_type,
+                gl::FALSE,
+                stride as GLsizei,
+                pointer as *const c_void
+            );
+            Vbo::unbind(Attributes);
+        }
     }
 }
 

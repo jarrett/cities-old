@@ -28,14 +28,14 @@ mod model;
 mod mouse;
 mod sprite;
 mod text;
-mod hud;
+mod ui;
 
 use cgmath::{Point2, Ray3};
 use glfw::Context;
 
 fn main() {
     let (
-        mut glfw, mut window, events, mut camera,
+        mut glfw, mut window, events, mut hud, mut camera,
         ground_program, water_program, model_program_3d,
         model_buffers, world, z_sorted, mouse_tree
     ) = init::init().unwrap();

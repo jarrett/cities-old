@@ -142,36 +142,25 @@ impl DebugLines {
     
     #[allow(dead_code)]
     fn buffer(&mut self) {
-        unsafe {
-            self.position_buffer.bind();
-            gl::BufferData(
-              gl::ARRAY_BUFFER,
-              // 4 bytes per float, 3 floats per vertex.
-              4 * 3 * self.positions.len() as i64,
-              self.positions.as_ptr() as *const c_void,
-              gl::DYNAMIC_DRAW
-            );
-        
-            self.color_buffer.bind();
-            gl::BufferData(
-              gl::ARRAY_BUFFER,
-              // 4 bytes per float, 3 floats per vertex.
-              4 * 3 * self.colors.len() as i64,
-              self.colors.as_ptr() as *const c_void,
-              gl::DYNAMIC_DRAW
-            );
-        
-            self.index_buffer.bind();
-            gl::BufferData(
-              gl::ELEMENT_ARRAY_BUFFER,
-              // 2 bytes per index.
-              2 * self.indices.len() as i64,
-              self.indices.as_ptr() as *const c_void,
-              gl::DYNAMIC_DRAW
-            );
-            
-            Vbo::unbind(Attributes);
-            Vbo::unbind(Indices);
-        }
+        self.position_buffer.buffer_data(
+            // 4 bytes per float, 3 floats per vertex.
+            4 * 3 * self.positions.len(),
+            &self.positions,
+            gl::DYNAMIC_DRAW
+        );
+    
+        self.color_buffer.buffer_data(
+            // 4 bytes per float, 3 floats per vertex.
+            4 * 3 * self.colors.len(),
+            &self.colors,
+            gl::DYNAMIC_DRAW
+        );
+    
+        self.index_buffer.buffer_data(
+            // 2 bytes per index.
+            2 * self.indices.len(),
+            &self.indices,
+            gl::DYNAMIC_DRAW
+        );
     }
 }

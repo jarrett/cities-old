@@ -10,6 +10,8 @@ use cgmath::{Point3, Aabb3};
 use errors::GameError;
 use futil::IoErrorLine;
 use camera::Camera;
+use ui;
+use ui::Ui;
 use world::World;
 use model;
 use model::{MetaModel, Program3d};
@@ -26,6 +28,7 @@ pub fn init() -> Result<(
     Glfw,
     Window,
     Events,
+    Ui,
     Camera,
     terrain::ground::Program,
     terrain::water::Program,
@@ -35,32 +38,13 @@ pub fn init() -> Result<(
     ZSorted,
     mouse::Tree
 ), GameError> {
-    let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).ok().expect("Failed to init glfw");
+    let glfw = init_glfw();
     
-    glfw.window_hint(glfw::WindowHint::ContextVersion(4, 1));
-    glfw.window_hint(glfw::WindowHint::OpenGlForwardCompat(true));
-    glfw.window_hint(glfw::WindowHint::OpenGlProfile(glfw::OpenGlProfileHint::Core));
-    
-    let (mut window, events) = glfw.create_window(
-        1280, 960, "Cities", glfw::WindowMode::Windowed
-    ).expect("Failed to create GLFW window.");
-    
-    window.set_key_polling(true);
-    window.make_current();
-    
-    // Load the external functions. From the gl-rs crate.
-    gl::load_with(|s| window.get_proc_address(s));
-    
-    unsafe {
-        // Basic OpenGL configs.
-        gl::Enable(gl::DEPTH_TEST);
-        gl::Enable(gl::BLEND);
-        gl::DepthFunc(gl::LEQUAL);
-        gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
-        gl::ClearColor(0.9, 0.94, 1.0, 1.0);
-    }
+    let (window, events) = init_window(&glfw);
     
     let mut camera = Camera::new(1280, 960, 10f32);
+    
+    let ui = init_ui();
     
     let (ground_program, water_program, model_program_3d) = init_programs();
     
@@ -83,9 +67,48 @@ pub fn init() -> Result<(
     mouse_tree.add_chunks_from_world(&world);
     
     Ok((
-        glfw, window, events, camera, ground_program, water_program, model_program_3d,
+        glfw, window, events, ui, camera, ground_program, water_program, model_program_3d,
         model_buffers, world, z_sorted, mouse_tree
     ))
+}
+
+fn init_glfw() -> Glfw {
+    let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).ok().expect("Failed to init glfw");
+    
+    glfw.window_hint(glfw::WindowHint::ContextVersion(4, 1));
+    glfw.window_hint(glfw::WindowHint::OpenGlForwardCompat(true));
+    glfw.window_hint(glfw::WindowHint::OpenGlProfile(glfw::OpenGlProfileHint::Core));
+    
+    glfw
+}
+
+fn init_window(glfw: &Glfw) -> (Window, Events) {
+    let (mut window, events) = glfw.create_window(
+        1280, 960, "Cities", glfw::WindowMode::Windowed
+    ).expect("Failed to create GLFW window.");
+    
+    window.set_key_polling(true);
+    window.make_current();
+    
+    // Load the external functions. From the gl-rs crate.
+    gl::load_with(|s| window.get_proc_address(s));
+    
+    unsafe {
+        // Basic OpenGL configs.
+        gl::Enable(gl::DEPTH_TEST);
+        gl::Enable(gl::BLEND);
+        gl::DepthFunc(gl::LEQUAL);
+        gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+        gl::ClearColor(0.9, 0.94, 1.0, 1.0);
+    }
+    
+    (window, events)
+}
+
+fn init_ui() -> Ui {
+    let mut ui = Ui::new();
+    //ui.add(ui::Button::element().text("Test Button"));
+    ui
 }
 
 fn init_programs() -> (terrain::ground::Program, terrain::water::Program, model::Program3d) {

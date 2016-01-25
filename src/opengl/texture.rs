@@ -84,8 +84,6 @@ impl Texture2d {
         }
     }
     
-    pub fn height(&self) -> usize { self.height }
-    
     pub fn upload<T>(
         &mut self,
         level: GLint,
@@ -118,8 +116,6 @@ impl Texture2d {
             gl::BindTexture(gl::TEXTURE_2D, 0);
         }
     }
-    
-    pub fn width(&self) -> usize { self.width }
 }
 
 impl Drop for Texture2d {

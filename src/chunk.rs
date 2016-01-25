@@ -159,52 +159,37 @@ impl Chunk {
     }
     
     pub fn buffer_depths(&mut self) {
-        unsafe {
-          self.water_depth_buffer.bind();
-          gl::BufferData(
-              gl::ARRAY_BUFFER,
-              (mem::size_of::<f32>() as usize * self.x_verts * self.y_verts) as i64,
-              self.water_depths.as_ptr() as *const c_void,
-              gl::DYNAMIC_DRAW
-          );
-          Vbo::unbind(Attributes);
-        }
+        self.water_depth_buffer.buffer_data(
+            4 * self.x_verts * self.y_verts,
+            &self.water_depths,
+            gl::DYNAMIC_DRAW
+        );
         self.depths_buffered = true;
     }
     
-    pub fn buffer_normals(&mut self) {
-        unsafe {
-            self.ground_normal_buffer.bind();
-            gl::BufferData(
-                gl::ARRAY_BUFFER,
-                (mem::size_of::<f32>() as usize * 3 * self.x_verts * self.y_verts) as i64,
-                self.ground_normals.as_ptr() as *const c_void,
-                gl::DYNAMIC_DRAW
-            );
-            Vbo::unbind(Attributes);
-        }
+    pub fn buffer_normals(&mut self) {        
+        self.ground_normal_buffer.buffer_data(
+            3 * 4 * self.x_verts * self.y_verts,
+            &self.ground_normals,
+            gl::DYNAMIC_DRAW
+        );
+        
         self.normals_buffered = true;
     }
     
     pub fn buffer_positions(&mut self) {
-        unsafe {
-            self.ground_position_buffer.bind();
-            gl::BufferData(
-                gl::ARRAY_BUFFER,
-                (mem::size_of::<Point3<f32>>() as usize * self.x_verts * self.y_verts) as i64,
-                self.ground_positions.as_ptr() as *const c_void,
-                gl::DYNAMIC_DRAW
-            );
-            
-            self.water_position_buffer.bind();
-            gl::BufferData(
-              gl::ARRAY_BUFFER,
-              (mem::size_of::<Point3<f32>>() as usize * self.x_verts * self.y_verts) as i64,
-              self.water_positions.as_ptr() as *const c_void,
-              gl::STATIC_DRAW
-            );
-            Vbo::unbind(Attributes);
-        }
+        self.ground_position_buffer.buffer_data(
+            3 * 4 * self.x_verts * self.y_verts,
+            &self.ground_positions,
+            gl::DYNAMIC_DRAW
+        );
+        
+        self.water_position_buffer.buffer_data(
+          3 * 4 as usize * self.x_verts * self.y_verts,
+          &self.water_positions,
+          gl::STATIC_DRAW
+        );
+        
         self.positions_buffered = true;
     }
     
@@ -226,16 +211,13 @@ impl Chunk {
                 indices.push((( y      * self.x_verts) + x + 1) as GLushort); // NE.
             }
         }
-        unsafe {
-          self.index_buffer.bind();
-          gl::BufferData(
-            gl::ELEMENT_ARRAY_BUFFER,
-            (mem::size_of::<GLushort>() * size) as i64,
-            indices.as_ptr() as *const c_void,
-            gl::STATIC_DRAW
-          );
-          Vbo::unbind(Indices);
-        }
+        
+        self.index_buffer.buffer_data(
+          mem::size_of::<GLushort>() * size,
+          &indices,
+          gl::STATIC_DRAW
+        );
+        
         self.indices_buffered = true;
     }
     
@@ -337,27 +319,30 @@ impl Chunk {
         unsafe {
             // Ground.
             self.ground_vao.bind();
-        
-            self.ground_position_buffer.bind();
-            gl::EnableVertexAttribArray(ground_program.position_idx);
-            gl::VertexAttribPointer(ground_program.position_idx, 3, gl::FLOAT, gl::FALSE, 0, ptr::null());
-        
-            self.ground_normal_buffer.bind();
-            gl::EnableVertexAttribArray(ground_program.normal_idx);
-            gl::VertexAttribPointer(ground_program.normal_idx, 3, gl::FLOAT, gl::FALSE, 0, ptr::null());
+            
+            self.ground_vao.attrib(
+                &self.ground_position_buffer,
+                ground_program.position_idx, 3, gl::FLOAT, 0, 0
+            );
+            
+            self.ground_vao.attrib(
+                &self.ground_normal_buffer,    
+                ground_program.normal_idx, 3, gl::FLOAT, 0, 0
+            );
         
             // Water.
             self.water_vao.bind();
+            
+            self.water_vao.attrib(
+                &self.water_position_buffer,
+                water_program.position_idx, 3, gl::FLOAT, 0, 0
+            );
         
-            self.water_position_buffer.bind();
-            gl::EnableVertexAttribArray(water_program.position_idx);
-            gl::VertexAttribPointer(water_program.position_idx, 3, gl::FLOAT, gl::FALSE, 0, ptr::null());
-        
-            self.water_depth_buffer.bind();
-            gl::EnableVertexAttribArray(water_program.depth_idx);
-            gl::VertexAttribPointer(water_program.depth_idx, 1, gl::FLOAT, gl::FALSE, 0, ptr::null());
-        
-            Vbo::unbind(Attributes);
+            self.water_vao.attrib(
+                &self.water_depth_buffer,
+                water_program.depth_idx, 1, gl::FLOAT, 0, 0
+            );
+            
             Vao::unbind();
         }
     }

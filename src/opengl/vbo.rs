@@ -1,3 +1,4 @@
+use libc::c_void;
 use gl;
 use gl::types::{GLuint, GLenum};
 
@@ -15,12 +16,25 @@ impl Vbo {
         vbo
     }
     
-    pub fn unbind(target: Target) {
-        unsafe { gl::BindBuffer(Vbo::translate_target(target), 0); }
+    pub unsafe fn unbind(target: Target) {
+        gl::BindBuffer(Vbo::translate_target(target), 0);
     }
     
-    pub fn bind(&self) {
-        unsafe { gl::BindBuffer(self.target, self.id); }
+    pub unsafe fn bind(&self) {
+        gl::BindBuffer(self.target, self.id);
+    }
+    
+    pub fn buffer_data<T>(&mut self, size: usize, data: &Vec<T>, usage: GLenum) {
+        unsafe {
+            gl::BindBuffer(self.target, self.id);
+            gl::BufferData(
+                self.target,
+                size as i64,
+                data.as_ptr() as *const c_void,
+                usage
+            );
+            gl::BindBuffer(self.target, 0);
+        }
     }
     
     fn translate_target(target: Target) -> GLenum {

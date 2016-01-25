@@ -37,44 +37,31 @@ impl Buffers {
     }
     
     pub fn upload(&mut self, program: &model::Program3d) {
+        self.position_buffer.buffer_data(
+            4 * 3 * self.positions.len(),
+            &self.positions,
+            gl::STATIC_DRAW
+        );
+        
+        self.uv_buffer.buffer_data(
+            4 * 2 * self.uvs.len(),
+            &self.uvs,
+            gl::STATIC_DRAW
+        );
+        
+        self.index_buffer.buffer_data(
+            mem::size_of::<u16>() * self.indices.len(),
+            &self.indices,
+            gl::STATIC_DRAW
+        );
+        
         unsafe {
             self.vao.bind();
-            
-            // Positions.
-            self.position_buffer.bind();
-            gl::BufferData(
-                gl::ARRAY_BUFFER,
-                (mem::size_of::<f32>() * 3 * self.positions.len()) as i64,
-                self.positions.as_ptr() as *const c_void,
-                gl::STATIC_DRAW
-            );
-            gl::EnableVertexAttribArray(program.position_idx);
-            gl::VertexAttribPointer(program.position_idx, 3, gl::FLOAT, gl::FALSE, 0, ptr::null());
-            
-            // UVs.
-            self.uv_buffer.bind();
-            gl::BufferData(
-                gl::ARRAY_BUFFER,
-                (mem::size_of::<f32>() * 2 * self.uvs.len()) as i64,
-                self.uvs.as_ptr() as *const c_void,
-                gl::STATIC_DRAW
-            );
-            gl::EnableVertexAttribArray(program.uv_idx);
-            gl::VertexAttribPointer(program.uv_idx, 2, gl::FLOAT, gl::FALSE, 0, ptr::null());
-            
-            Vbo::unbind(Attributes);
+            self.vao.attrib(&self.position_buffer, program.position_idx, 3, gl::FLOAT, 0, 0);
+            self.vao.attrib(&self.uv_buffer, program.uv_idx, 2, gl::FLOAT, 0, 0);
             Vao::unbind();
-            
-            // Indices.
-            self.index_buffer.bind();
-            gl::BufferData(
-                gl::ELEMENT_ARRAY_BUFFER,
-                (mem::size_of::<u16>() * self.indices.len()) as i64,
-                self.indices.as_ptr() as *const c_void,
-                gl::STATIC_DRAW
-            );
-            Vbo::unbind(Indices);
         }
+        
         self.uploaded = true;
     }
 }
