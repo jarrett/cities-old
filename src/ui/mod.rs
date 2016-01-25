@@ -111,17 +111,19 @@ impl Ui {
     
     fn configure_vao(&mut self) {
         unsafe {
-          self.vao.bind();
-          self.attr_buffer.bind();
-        
-          gl::EnableVertexAttribArray(self.program.position_idx);
-          gl::VertexAttribPointer(self.program.position_idx, 2, gl::FLOAT, gl::FALSE, 0, ptr::null());
-        
-          gl::EnableVertexAttribArray(self.program.uv_idx);
-          gl::VertexAttribPointer(self.program.uv_idx, 2, gl::FLOAT, gl::FALSE, 0, ptr::null());
-        
-          Vbo::unbind(Attributes);
-          Vao::unbind();
+            self.vao.bind();
+            
+            self.vao.attrib(
+                &self.attr_buffer,
+                self.program.position_idx, 2, gl::FLOAT, 0, 0
+            );
+            
+            self.vao.attrib(
+                &self.attr_buffer,
+                self.program.uv_idx, 2, gl::FLOAT, 12, 12
+            );
+            
+            Vao::unbind();
         }
     }
 }
