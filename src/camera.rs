@@ -3,10 +3,10 @@ use cgmath::{Rad, rad, Point, Point2, Point3, Vector, Vector2, Vector4, Matrix, 
 use glfw::{Window, Action, Key};
 
 // 28 degrees on the Z axis.
-static CAMERA_TILT: Rad<f32> = Rad { s: 3.97935069f32 };
+static CAMERA_TILT: Rad<f32> = Rad(3.97935069f32);
 
 // 228 degrees (or 48 degrees, in Blender terms) on the X axis.
-static CAMERA_ORBIT: Rad<f32> = Rad { s: 0.488692191f32 };
+static CAMERA_ORBIT: Rad<f32> = Rad(0.488692191f32);
 
 pub struct Camera {
     pub z_rotation: Rad<f32>,

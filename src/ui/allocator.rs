@@ -1,5 +1,6 @@
 use std::iter::repeat;
 
+// A struct that allocates space in a VBO that stores vertex data for Elements.
 pub struct Allocator {
     // The map of free and used slots in the Vbo. Each byte in this array represents one
     // slot in the Vbo, i.e. the space needed for a single Element. True means used;
@@ -16,7 +17,7 @@ impl Allocator {
     }
     
     // Finds the next free slot in the Vbo and marks it as used.
-    fn alloc_slot(&mut self) -> usize {
+    pub fn alloc_slot(&mut self) -> usize {
         let mut idx: usize = self.alloc_idx;
         loop {
             if !self.alloc[idx] {
@@ -33,7 +34,7 @@ impl Allocator {
         }
     }
     
-    fn free_slot(&mut self, idx: usize) {
+    pub fn free_slot(&mut self, idx: usize) {
         self.alloc[idx] = false;
     }
 }

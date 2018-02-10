@@ -3,7 +3,6 @@ use std::mem;
 use std::path::Path;
 use gl;
 use gl::types::*;
-use libc::{c_void};
 use cgmath::{Point, Point3, Ray3};
 
 use opengl::{Program, Vbo, Vao, Attributes, Indices};
@@ -15,9 +14,9 @@ pub struct DebugLines {
     pub colors:          Vec<Point3<f32>>,
     pub indices:         Vec<u16>,
     
-    pub position_buffer: Vbo,
-    pub color_buffer:    Vbo,
-    pub index_buffer:    Vbo,
+    pub position_buffer: Vbo<Attributes>,
+    pub color_buffer:    Vbo<Attributes>,
+    pub index_buffer:    Vbo<Indices>,
     pub vao:             Vao,
     
     pub program:         Program,
@@ -32,57 +31,52 @@ pub struct DebugLines {
 impl DebugLines {
     #[allow(dead_code)]
     pub fn new() -> DebugLines {
+        let program = Program::new(
+            &Path::new("glsl/debug-lines.vert.glsl"),
+            &Path::new("glsl/debug-lines.frag.glsl")
+        );
+        
+        let position_idx = program.get_attrib_location("position");
+        let color_idx    = program.get_attrib_location("color");
+        let camera_idx   = program.get_uniform_location("camera");
+        
+        let mut vao = Vao::new();
+        let mut position_buffer = Vbo::new(Attributes);
+        let mut color_buffer = Vbo::new(Attributes);
+        
+        vao.attrib(
+            &position_buffer,
+            position_idx as GLuint, // Index in program.
+            3, // Number of vector components.
+            gl::FLOAT, // Data type.
+            0, // Stride.
+            0 // Offset.
+        );
+    
+        vao.attrib(
+            &color_buffer,
+            color_idx as GLuint, // Index in program.
+            3, // Number of vector components.
+            gl::FLOAT, // Data type.
+            0, // Stride.
+            0 // Offset.
+        );
+        
         let mut lines = DebugLines {
             positions: Vec::new(),
             colors: Vec::new(),
             indices: Vec::new(),
-            position_buffer: Vbo::new(Attributes),
-            color_buffer: Vbo::new(Attributes),
+            position_buffer: position_buffer,
+            color_buffer: color_buffer,
             index_buffer: Vbo::new(Indices),
-            vao: Vao::new(),
-            program: Program::new(
-                &Path::new("glsl/debug-lines.vert.glsl"),
-                &Path::new("glsl/debug-lines.frag.glsl")
-            ),
-            position_idx: 0,
-            color_idx: 0,
-            camera_idx: 0,
+            vao: vao,
+            program: program,
+            position_idx: position_idx,
+            color_idx: color_idx,
+            camera_idx: camera_idx,
             next_attr: 0,
             next_index: 0
         };
-    
-        unsafe {
-            lines.position_idx   = lines.program.get_attrib_location("position");
-            lines.color_idx      = lines.program.get_attrib_location("color");
-            lines.camera_idx     = lines.program.get_uniform_location("camera");
-        
-            lines.vao.bind();
-        
-            lines.position_buffer.bind();
-            gl::EnableVertexAttribArray(lines.position_idx);
-            gl::VertexAttribPointer(
-              lines.position_idx as GLuint,
-              3,
-              gl::FLOAT,
-              gl::FALSE,
-              0,
-              ptr::null::<c_void>() as *const c_void,
-            );
-        
-            lines.color_buffer.bind();
-            gl::EnableVertexAttribArray(lines.color_idx);
-            gl::VertexAttribPointer(
-              lines.color_idx as GLuint,
-              3,
-              gl::FLOAT,
-              gl::FALSE,
-              0,
-              ptr::null::<c_void>() as *const c_void,
-            );
-        
-            Vbo::unbind(Attributes);
-            Vao::unbind();
-        }
         
         lines
     }
@@ -134,7 +128,12 @@ impl DebugLines {
             self.index_buffer.bind();
             gl::UseProgram(self.program.id);
             gl::UniformMatrix4fv(self.camera_idx, 1, gl::FALSE, mem::transmute(&camera.transform));
-            gl::DrawElements(gl::LINES, self.positions.len() as i32, gl::UNSIGNED_SHORT, ptr::null::<c_void>() as *const c_void);
+            gl::DrawElements(
+                gl::LINES,
+                self.positions.len() as i32, // Number of indices to draw.
+                gl::UNSIGNED_SHORT, // Format of index buffer.
+                ptr::null() // Offset into index buffer.
+            );
             Vbo::unbind(Indices);
             Vao::unbind();
         }

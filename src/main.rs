@@ -1,11 +1,12 @@
-#![feature(vec_push_all)]
-#![feature(fs_walk)]
-#![feature(drain)]
-#![feature(convert)]
+//#![feature(vec_push_all)]
+//#![feature(fs_walk)]
+//#![feature(drain)]
+//#![feature(convert)]
 
 extern crate glfw;
 extern crate gl;
 extern crate cgmath;
+extern crate collision;
 extern crate image;
 extern crate freetype;
 extern crate libc;
@@ -35,7 +36,7 @@ use glfw::Context;
 
 fn main() {
     let (
-        mut glfw, mut window, events, mut hud, mut camera,
+        mut glfw, mut window, events, mut ui, mut camera,
         ground_program, water_program, model_program_3d,
         model_buffers, world, z_sorted, mouse_tree
     ) = init::init().unwrap();
@@ -53,6 +54,7 @@ fn main() {
         }
         
         world.draw(&camera, &ground_program, &water_program, &mouse_hit);
+        ui.draw(width, height);
         
         for thing in z_sorted.get(&camera).iter() {
             thing.draw(&model_program_3d, &model_buffers, &camera);

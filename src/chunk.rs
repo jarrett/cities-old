@@ -1,6 +1,5 @@
 use std::mem;
 use std::ptr;
-use libc::c_void;
 use cgmath::{Vector, EuclideanVector, Vector3, Point, Point3};
 use gl;
 use gl::types::*;
@@ -29,12 +28,12 @@ pub struct Chunk {
     x_size:   usize, // X dimension. Equal to x_verts - 1.
     y_size:   usize, // Y dimension. Equal to y_verts - 1.
     
-    index_buffer:             Vbo, // Used by ground and water.
-    ground_position_buffer:   Vbo,
-    ground_normal_buffer:     Vbo,
+    index_buffer:             Vbo<Indices>, // Used by ground and water.
+    ground_position_buffer:   Vbo<Attributes>,
+    ground_normal_buffer:     Vbo<Attributes>,
     ground_vao:               Vao,
-    water_position_buffer:    Vbo,
-    water_depth_buffer:       Vbo,
+    water_position_buffer:    Vbo<Attributes>,
+    water_depth_buffer:       Vbo<Attributes>,
     water_vao:                Vao,
     
     pub overlay:              Overlay,

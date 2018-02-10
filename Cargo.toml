@@ -5,11 +5,15 @@ version = "0.0.1"
 authors = ["Jarrett Colby <jarrettcolby@gmail.com>"]
 
 [dependencies]
-gl = {git = "https://github.com/bjz/gl-rs"}
-glfw = {git = "https://github.com/bjz/glfw-rs.git"}
-cgmath = {git = "https://github.com/jarrett/cgmath-rs.git"}
+gl = "*"
+cgmath = {git = "https://github.com/brendanzab/cgmath.git"}
+collision = {git = "https://github.com/kvark/collision-rs"}
 freetype-rs = "*"
 image = "*"
 num = "*"
 libc = "*"
 byteorder = "*"
+
+[dependencies.glfw]
+git = "https://github.com/bjz/glfw-rs.git"
+default-features = false

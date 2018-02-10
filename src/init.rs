@@ -91,7 +91,7 @@ fn init_window(glfw: &Glfw) -> (Window, Events) {
     window.make_current();
     
     // Load the external functions. From the gl-rs crate.
-    gl::load_with(|s| window.get_proc_address(s));
+    gl::load_with(|s| window.get_proc_address(s) as *const std::os::raw::c_void);
     
     unsafe {
         // Basic OpenGL configs.
@@ -107,7 +107,7 @@ fn init_window(glfw: &Glfw) -> (Window, Events) {
 
 fn init_ui() -> Ui {
     let mut ui = Ui::new();
-    //ui.add(ui::Button::element().text("Test Button"));
+    ui.add_widget(ui::Button::new(40, 20, 200, 50).text("Test Button"));
     ui
 }
 

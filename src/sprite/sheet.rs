@@ -9,8 +9,7 @@ use gl;
 use gl::types::*;
 use image;
 use image::{GenericImage, DynamicImage, RgbaImage};
-use libc::{c_void};
-use cgmath::{Vector, Vector2};
+use cgmath::{VectorSpace, Vector2};
 
 use opengl::{Texture2d, TextureConfig};
 use super::{WidthHeight, pack_some, sort_for_packing};
@@ -154,8 +153,6 @@ impl Sheet {
         current_texture.upload(
             0, // Mipmap level.
             gl::RGBA, // Internal format.
-            width,
-            height,
             gl::RGBA, // Input format.
             gl::UNSIGNED_BYTE, // Input data type.
             &buffer,

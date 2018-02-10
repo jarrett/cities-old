@@ -2,7 +2,6 @@ use std::fs::File;
 use std::fs;
 use std::mem;
 use std::path::{Path, PathBuf};
-use libc::{c_void};
 use std::rc::Rc;
 use std::collections::HashMap;
 use std::io;
@@ -199,7 +198,7 @@ impl MetaModel {
             // should be different for 2d models.
             let sprite_num: u16 = (direction + camera.orbit * 2) as u16 % 8;
             let offset = self.index_offset + sprite_num * 36;
-            gl::DrawElements(gl::TRIANGLES, 18, gl::UNSIGNED_SHORT, offset as *const c_void);
+            gl::DrawElements(gl::TRIANGLES, 18, gl::UNSIGNED_SHORT, offset as *const GLvoid);
             gl::BindTexture(gl::TEXTURE_2D, 0);
             Vbo::unbind(Indices);
             Vao::unbind();

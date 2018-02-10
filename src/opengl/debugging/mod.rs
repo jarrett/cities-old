@@ -4,8 +4,10 @@ use gl;
 use gl::types::*;
 
 mod lines;
+mod checker_pattern;
 
 pub use self::lines::DebugLines;
+pub use self::checker_pattern::checker;
 
 #[allow(dead_code)]
 pub fn print_vbo<T: Debug>(id: GLuint, target: GLenum, group: usize) {

@@ -58,7 +58,7 @@ impl Overlay {
                 0,                    // Border.
                 gl::RG,               // Source format.
                 gl::UNSIGNED_BYTE,    // Source data type.
-                map_data.as_ptr() as *const c_void
+                map_data.as_ptr() as *const GLvoid
             );
         }
     }

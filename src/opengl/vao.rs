@@ -1,11 +1,14 @@
 use std::ptr;
-use libc::c_void;
 use gl;
-use gl::types::{GLuint, GLint, GLsizei, GLenum};
+use gl::types::{GLuint, GLint, GLsizei, GLenum, GLvoid};
 
-use super::{Vbo, Attributes};
+use super::{Vbo, Attributes, Indices};
 
-pub struct Vao {id: GLuint}
+// The type parameter is for the attributes buffers. It could be, e.g, (Vbo, Vbo) or
+// MyCustomVbos {positions: Vbo, uvs: Vbo}.
+pub struct Vao {
+    id: GLuint
+}
 
 impl Vao {
     pub fn new() -> Vao {
@@ -24,7 +27,7 @@ impl Vao {
     
     pub fn attrib(
         &self,
-        vbo: &Vbo,
+        vbo: &Vbo<Attributes>,
         attrib_idx: GLuint,
         size: usize,
         data_type: GLenum,
@@ -40,7 +43,7 @@ impl Vao {
                 data_type,
                 gl::FALSE,
                 stride as GLsizei,
-                pointer as *const c_void
+                pointer as *const GLvoid
             );
             Vbo::unbind(Attributes);
         }

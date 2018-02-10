@@ -1,4 +1,5 @@
-use cgmath::{Aabb3, Point3, Ray3, Triangle, Intersect};
+use cgmath::Point3;
+use collision::{Aabb3, Ray3, Triangle, Intersect};
 
 #[derive(Debug)]
 pub enum Target {

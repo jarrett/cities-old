@@ -1,6 +1,7 @@
-use cgmath::{Aabb, Aabb3, Point3, Triangle, Ray3};
+use cgmath::Point3;
+use collision::{Aabb, Aabb3, Ray3};
 
-use super::{in_interval, min_opts, max_opts};
+use super::{Triangle, in_interval, min_opts, max_opts};
 
 // Considers the X and Y coordinates only.
 pub fn aabb3_contains_aabb3_xy(outer: &Aabb3<f32>, inner: &Aabb3<f32>) -> bool {
@@ -25,14 +26,14 @@ pub fn split_aabb3_for_quadtree(bb: &Aabb3<f32>) -> (Aabb3<f32>, Aabb3<f32>, Aab
     )
 }
 
-pub fn aabb3_from_tris(tri1: &Triangle<Point3<f32>>, tri2: &Triangle<Point3<f32>>) -> Aabb3<f32> {
-    let min_x: f32 = tri1.p0.x.min(tri1.p1.x).min(tri1.p2.x).min(tri2.p0.x).min(tri2.p1.x).min(tri2.p2.x);
-    let min_y: f32 = tri1.p0.y.min(tri1.p1.y).min(tri1.p2.y).min(tri2.p0.y).min(tri2.p1.y).min(tri2.p2.y);
-    let min_z: f32 = tri1.p0.z.min(tri1.p1.z).min(tri1.p2.z).min(tri2.p0.z).min(tri2.p1.z).min(tri2.p2.z);
+pub fn aabb3_from_tris(tri1: &Triangle, tri2: &Triangle) -> Aabb3<f32> {
+    let min_x: f32 = tri1.0.x.min(tri1.1.x).min(tri1.2.x).min(tri2.0.x).min(tri2.1.x).min(tri2.2.x);
+    let min_y: f32 = tri1.0.y.min(tri1.1.y).min(tri1.2.y).min(tri2.0.y).min(tri2.1.y).min(tri2.2.y);
+    let min_z: f32 = tri1.0.z.min(tri1.1.z).min(tri1.2.z).min(tri2.0.z).min(tri2.1.z).min(tri2.2.z);
     
-    let max_x: f32 = tri1.p0.x.max(tri1.p1.x).max(tri1.p2.x).max(tri2.p0.x).max(tri2.p1.x).max(tri2.p2.x);
-    let max_y: f32 = tri1.p0.y.max(tri1.p1.y).max(tri1.p2.y).max(tri2.p0.y).max(tri2.p1.y).max(tri2.p2.y);
-    let max_z: f32 = tri1.p0.z.max(tri1.p1.z).max(tri1.p2.z).max(tri2.p0.z).max(tri2.p1.z).max(tri2.p2.z);
+    let max_x: f32 = tri1.0.x.max(tri1.1.x).max(tri1.2.x).max(tri2.0.x).max(tri2.1.x).max(tri2.2.x);
+    let max_y: f32 = tri1.0.y.max(tri1.1.y).max(tri1.2.y).max(tri2.0.y).max(tri2.1.y).max(tri2.2.y);
+    let max_z: f32 = tri1.0.z.max(tri1.1.z).max(tri1.2.z).max(tri2.0.z).max(tri2.1.z).max(tri2.2.z);
     
     Aabb3::new(Point3::new(min_x, min_y, min_z), Point3::new(max_x, max_y, max_z))
 }

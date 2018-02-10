@@ -6,24 +6,25 @@ use gl::types::*;
 use opengl;
 
 pub struct Program {
-    pub p:              opengl::Program,
+    pub p:                 opengl::Program,
     
     // Uniform locations.
-    pub sprite_idx:     GLint,
+    pub viewport_size_idx: GLint,
+    pub sprite_idx:        GLint,
     
     // Attribute locations.
-    pub position_idx:   GLuint,
-    pub uv_idx:         GLuint
+    pub position_idx:      GLuint,
+    pub uv_idx:            GLuint
 }
 
 impl Program {
     pub fn new() -> Program {
         let mut program = Program {
             p: opengl::Program::new(
-                &Path::new("glsl/hud.vert.glsl"),
-                &Path::new("glsl/hud.frag.glsl")
+                &Path::new("glsl/ui.vert.glsl"),
+                &Path::new("glsl/ui.frag.glsl")
             ),
-            sprite_idx: 0, position_idx: 0, uv_idx: 0
+            viewport_size_idx: 0, sprite_idx: 0, position_idx: 0, uv_idx: 0
         };
         program.configure_indices();
         program
@@ -38,8 +39,9 @@ impl Program {
     }
     
     fn configure_indices(&mut self) {
-        self.sprite_idx   = self.p.get_uniform_location("sprite");
-        self.position_idx = self.p.get_attrib_location( "position");
-        self.uv_idx       = self.p.get_attrib_location( "uv");
+        self.viewport_size_idx = self.p.get_uniform_location("viewportSize");
+        self.sprite_idx        = self.p.get_uniform_location("sprite");
+        self.position_idx      = self.p.get_attrib_location( "position");
+        self.uv_idx            = self.p.get_attrib_location( "uv");
     }
 }

@@ -11,6 +11,8 @@ pub use self::aabb::{
 
 pub type Quad = (Point3<f32>, Point3<f32>, Point3<f32>, Point3<f32>);
 
+pub type Triangle = (Point3<f32>, Point3<f32>, Point3<f32>);
+
 // Tests whether v is in the closed interval [min, max].
 pub fn in_interval<T: PartialOrd>(v: T, min: T, max: T) -> bool {
     v >= min && v <= max
@@ -46,11 +48,11 @@ pub fn max_opts<T: PartialOrd>(opt_a: Option<T>, opt_b: Option<T>) -> Option<T> 
     }
 }
 
-pub fn quad_to_tris(quad: Quad) -> (Triangle<Point3<f32>>, Triangle<Point3<f32>>) {
+pub fn quad_to_tris(quad: Quad) -> (Triangle, Triangle) {
     let (p0, p1, p2, p3) = quad;
     (
-        Triangle::new(p0, p1, p3),
-        Triangle::new(p1, p2, p3)
+        Triangle(p0, p1, p3),
+        Triangle(p1, p2, p3)
     )
 }
 

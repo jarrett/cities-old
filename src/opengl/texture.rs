@@ -1,8 +1,7 @@
 use std::path::Path;
 
-use libc::c_void;
 use gl;
-use gl::types::{GLint, GLuint, GLenum};
+use gl::types::{GLint, GLuint, GLenum, GLvoid};
 use image;
 use image::GenericImage;
 
@@ -65,7 +64,7 @@ impl Texture2d {
                 0,                  // Border.
                 format,             // Input format, e.g. gl::RGBA.
                 gl::UNSIGNED_BYTE,  // Input data type.
-                buffer.as_ptr() as *const c_void
+                buffer.as_ptr() as *const GLvoid
             );
             gl::GenerateMipmap(gl::TEXTURE_2D);
             gl::BindTexture(gl::TEXTURE_2D, 0);
@@ -88,8 +87,6 @@ impl Texture2d {
         &mut self,
         level: GLint,
         internal_format: GLenum,
-        width: usize,
-        height: usize,
         input_format: GLenum,
         input_type: GLenum,
         buffer: &Vec<T>,
@@ -101,12 +98,12 @@ impl Texture2d {
                 gl::TEXTURE_2D,
                 0, // Mipmap level.
                 internal_format as GLint,
-                width as GLint,
-                height as GLint,
+                self.width as GLint,
+                self.height as GLint,
                 0, // Border.
                 input_format,
                 input_type,
-                buffer.as_ptr() as *const c_void
+                buffer.as_ptr() as *const GLvoid
             );
         
             if generate_mipmaps {

@@ -1,16 +1,22 @@
-use libc::c_void;
+use std::marker::PhantomData;
 use gl;
-use gl::types::{GLuint, GLenum};
+use gl::types::{GLuint, GLenum, GLintptr, GLsizeiptr, GLvoid};
 
-pub struct Vbo {id: GLuint, target: GLenum}
+// The type parameter T can be either Attributes or Indices.
+pub struct Vbo<T> {
+    id: GLuint,
+    initialized: bool,
+    target: PhantomData<T>
+}
 
-pub enum Target {Attributes, Indices}
+pub struct Attributes;
+pub struct Indices;
 
-impl Vbo {
-    pub fn new(target: Target) -> Vbo {
+impl Vbo<T> {
+    pub fn new() -> Vbo<T> {
         let mut vbo = Vbo {
             id: 0,
-            target: Vbo::translate_target(target)
+            initialized: false
         };
         unsafe { gl::GenBuffers(1, &mut vbo.id); }
         vbo
@@ -29,9 +35,26 @@ impl Vbo {
             gl::BindBuffer(self.target, self.id);
             gl::BufferData(
                 self.target,
-                size as i64,
-                data.as_ptr() as *const c_void,
+                size as GLsizeiptr,
+                data.as_ptr() as *const GLvoid,
                 usage
+            );
+            gl::BindBuffer(self.target, 0);
+        }
+        self.initialized = true;
+    }
+    
+    pub fn buffer_sub_data<D>(&mut self, offset: usize, size: usize, data: &Vec<D>) {
+        if !self.initialized {
+            panic!("VBO not initialized. Must call buffer_data before buffer_sub_data.");
+        }
+        unsafe {
+            gl::BindBuffer(self.target, self.id);
+            gl::BufferSubData(
+                self.target,
+                offset as GLintptr,
+                size as GLsizeiptr,
+                data.as_ptr() as *const GLvoid
             );
             gl::BindBuffer(self.target, 0);
         }
@@ -45,7 +68,7 @@ impl Vbo {
     }
 }
 
-impl Drop for Vbo {
+impl Drop for Vbo<T> {
     fn drop(&mut self) {
         unsafe { gl::DeleteBuffers(1, &self.id); }
     }

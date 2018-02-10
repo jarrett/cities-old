@@ -1,0 +1,582 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"var",
+				"variable"
+			],
+			[
+				"Ex",
+				"Expression"
+			],
+			[
+				"a",
+				"a"
+			],
+			[
+				"expr",
+				"expression"
+			],
+			[
+				"Con",
+				"Conjunction"
+			],
+			[
+				"an",
+				"antecedent"
+			],
+			[
+				"cons",
+				"consequent"
+			],
+			[
+				"con",
+				"consequent"
+			],
+			[
+				"Telescopes",
+				"Telescopes"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "src/ui/mod.rs",
+			"settings":
+			{
+				"buffer_size": 4130,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/camera.rs",
+			"settings":
+			{
+				"buffer_size": 5709,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/opengl/debugging/lines.rs",
+			"settings":
+			{
+				"buffer_size": 4712,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/opengl/vbo.rs",
+			"settings":
+			{
+				"buffer_size": 1979,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/chunk.rs",
+			"settings":
+			{
+				"buffer_size": 17396,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/opengl/vao.rs",
+			"settings":
+			{
+				"buffer_size": 1282,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/model/buffers.rs",
+			"settings":
+			{
+				"buffer_size": 1721,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/opengl/mod.rs",
+			"settings":
+			{
+				"buffer_size": 330,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 331.0,
+		"last_filter": "install",
+		"selected_items":
+		[
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"package",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 1030.0
+	},
+	"console":
+	{
+		"height": 334.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = '6f4c264a24d933ce70df5dedcf1dcaee' + 'ebe013ee18cced0ef93d5f746d80ef60'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/C/Users/Jarrett/rust/cities",
+		"/C/Users/Jarrett/rust/cities/src",
+		"/C/Users/Jarrett/rust/cities/src/model",
+		"/C/Users/Jarrett/rust/cities/src/opengl",
+		"/C/Users/Jarrett/rust/cities/src/ui"
+	],
+	"file_history":
+	[
+		"/C/Users/Jarrett/Sites/sjs/tmp.rb",
+		"/C/Users/Jarrett/rust/cities/src/ui/widget.rs",
+		"/C/Users/Jarrett/rust/cities/src/main.rs",
+		"/C/Users/Jarrett/rust/cities/src/ui/mod.rs",
+		"/C/Users/Jarrett/rust/cities/src/ui/element.rs",
+		"/C/Users/Jarrett/rust/cities/src/math/mod.rs",
+		"/C/Users/Jarrett/rust/cities/Cargo.toml",
+		"/C/Users/Jarrett/rust/cities/src/math/aabb.rs",
+		"/C/Users/Jarrett/rust/cities/src/mouse/target.rs",
+		"/C/Users/Jarrett/rust/cities/src/sprite/sheet.rs",
+		"/C/Users/Jarrett/rust/cities/src/ui/allocator.rs",
+		"/C/Users/Jarrett/rust/cities/src/thing/z_sorted.rs",
+		"/C/Users/Jarrett/Sites/sjs/db/schema.rb",
+		"/C/Users/Jarrett/Sites/sjs/db/migrate/20160913152921_rename_resources_link_page.rb",
+		"/C/Users/Jarrett/Sites/sjs/db/migrate/20160919172902_rename_link_page_entries.rb",
+		"/C/Users/Jarrett/Documents/My Games/Terraria/Players/Santa.plr",
+		"/C/Users/Jarrett/Documents/Litigation/Notes.txt",
+		"/C/Users/Jarrett/Documents/My Games/Terraria/Players/Santa/acfd04d2-f2de-40f2-bc7b-05e189f4f696.map",
+		"/C/Users/Jarrett/Documents/Law School/Classes/Criminal Justice/Criminal Justice Case Briefs.md",
+		"/C/Users/Jarrett/Sites/sjs/app/views/explorations/idata/measuring_light/tmp.rb",
+		"/C/Users/Jarrett/Sites/apollo/app/models/plan/unregistered.rb",
+		"/C/Users/Jarrett/Sites/apollo/test/integration/plan_permissions_test.rb",
+		"/C/Users/Jarrett/Sites/apollo/app/controllers/filings_controller.rb",
+		"/C/Users/Jarrett/Sites/apollo/app/models/plan/free.rb",
+		"/C/Users/Jarrett/Sites/apollo/app/models/plan/permission.rb",
+		"/C/Users/Jarrett/Sites/apollo/app/views/admin/users/index.html.erb",
+		"/C/Users/Jarrett/Sites/apollo/app/views/user_sessions/new.html.erb",
+		"/C/Users/Jarrett/Downloads/log_in.html.erb",
+		"/C/Users/Jarrett/Sites/apollo/app/assets/javascripts/charts/charts.js",
+		"/C/Users/Jarrett/Sites/apollo/app/assets/javascripts/chart.js",
+		"/C/Users/Jarrett/Sites/apollo/app/models/plan.rb",
+		"/C/Users/Jarrett/Sites/sjs/app/assets/stylesheets/_explorations.scss",
+		"/C/Users/Jarrett/Sites/sjs/config/locales/explorations/idata/en.yml",
+		"/C/Users/Jarrett/Sites/sjs/app/views/explorations/become/first_light/_introduction.html.erb",
+		"/C/Users/Jarrett/Sites/sjs/app/models/exploration/become.rb",
+		"/C/Users/Jarrett/Sites/sjs/config/locales/explorations/become/en.yml",
+		"/C/Users/Jarrett/Sites/sjs/app/models/exploration/idata.rb",
+		"/C/Users/Jarrett/Sites/sjs/app/models/exploration/base.rb",
+		"/C/Users/Jarrett/Sites/sjs/app/models/discourse.rb",
+		"/C/Users/Jarrett/Sites/sjs/config/routes.rb",
+		"/C/Users/Jarrett/Sites/sjs/Gemfile",
+		"/C/Users/Jarrett/Box/Clinic Cases - fall 2017/Jones/Related Cases/No. CV 2016-054241 (Ariz. Sup. Ct.)/CD Record/001_index_of_Record.htm",
+		"/C/Users/Jarrett/Sites/apollo/app/models/user.rb",
+		"/C/Users/Jarrett/Sites/apollo/test/integration/subscriptions_test.rb",
+		"/C/Users/Jarrett/Sites/apollo/app/views/home/home_logged_in.html.erb",
+		"/C/Users/Jarrett/AppData/Roaming/SpaceEngineers/Mods/Headquarters/Data/RespawnShips.sbc",
+		"/C/Users/Jarrett/AppData/Roaming/SpaceEngineers/Mods/Headquarters/Data/Prefabs/Ejector Seat.sbc",
+		"/C/Users/Jarrett/Sites/glj/app/views/static/symposium.html.erb",
+		"/C/Users/Jarrett/Sites/glj/config/routes.rb",
+		"/C/Users/Jarrett/Sites/glj/app/views/layouts/_navbar_public.html.erb",
+		"/C/Users/Jarrett/Documents/Space Engineers.ahk",
+		"/C/Users/Jarrett/Documents/Hotkeys.ahk",
+		"/C/Users/Jarrett/Sites/apollo/config/environments/development.rb"
+	],
+	"find":
+	{
+		"height": 64.0
+	},
+	"find_in_files":
+	{
+		"height": 260.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"vector",
+			"triangle"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "src/ui/mod.rs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4130,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1603,
+								1604
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Rust/Rust.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 792.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "src/camera.rs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5709,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								349,
+								349
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Rust/Rust.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "src/opengl/debugging/lines.rs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4712,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								508,
+								508
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Rust/Rust.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "src/opengl/vbo.rs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1979,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								290,
+								290
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Rust/Rust.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "src/chunk.rs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 17396,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1097,
+								1097
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Rust/Rust.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 799.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "src/opengl/vao.rs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1282,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								651,
+								651
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Rust/Rust.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 396.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "src/model/buffers.rs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1721,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								781,
+								781
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Rust/Rust.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "src/opengl/mod.rs",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 330,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								133,
+								133
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Rust/Rust.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 64.0
+	},
+	"input":
+	{
+		"height": 89.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "cities.sublime-project",
+	"replace":
+	{
+		"height": 118.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 756.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

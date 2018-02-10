@@ -1,6 +1,5 @@
 use std::mem;
 use std::ptr;
-use libc::{c_void};
 use gl;
 use gl::types::*;
 use cgmath::{Point3, Vector2};
@@ -13,9 +12,9 @@ pub struct Buffers {
     pub uvs:       Vec<Vector2<f32>>,
     pub indices:   Vec<u16>,
     
-    pub position_buffer: Vbo,
-    pub uv_buffer:       Vbo,
-    pub index_buffer:    Vbo,
+    pub position_buffer: Vbo<Attributes>,
+    pub uv_buffer:       Vbo<Attributes>,
+    pub index_buffer:    Vbo<Indices>,
     
     pub vao:             Vao,
     
@@ -28,9 +27,9 @@ impl Buffers {
             positions:        Vec::new(),
             uvs:              Vec::new(),
             indices:          Vec::new(),
-            position_buffer:  Vbo::new(Attributes),
-            uv_buffer:        Vbo::new(Attributes),
-            index_buffer:     Vbo::new(Indices),
+            position_buffer:  Vbo::new(),
+            uv_buffer:        Vbo::new(),
+            index_buffer:     Vbo::new(),
             vao:              Vao::new(),
             uploaded:         false
         }
