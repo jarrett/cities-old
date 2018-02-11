@@ -7,6 +7,7 @@ extern crate libc;
 mod camera;
 mod mode;
 mod opengl;
+mod ui;
 
 use glfw::Context;
 use std::boxed::Box;
