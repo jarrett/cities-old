@@ -1,8 +1,10 @@
+extern crate cgmath;
 extern crate gl;
 extern crate glfw;
 extern crate image;
 extern crate libc;
 
+mod camera;
 mod mode;
 mod opengl;
 

@@ -25,7 +25,7 @@ impl Target for Indices {
 }
 
 impl <T: Target> Vbo<T> {
-  fn new() -> Vbo<T> {
+  pub fn new() -> Vbo<T> {
     let mut vbo = Vbo {
       id: 0,
       initialized: false,
