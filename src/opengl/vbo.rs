@@ -38,13 +38,13 @@ impl <T: Target> Vbo<T> {
   fn translate_target(&self) -> GLenum {
     self.target.as_gl_enum()
   }
-
-  pub unsafe fn unbind(&self) {
-    gl::BindBuffer(self.translate_target(), 0);
-  }
   
   pub unsafe fn bind(&self) {
     gl::BindBuffer(self.translate_target(), self.id);
+  }
+
+  pub unsafe fn unbind(&self) {
+    gl::BindBuffer(self.translate_target(), 0);
   }
   
   pub fn buffer_data<D>(&mut self, size: usize, data: &Vec<D>, usage: GLenum) {
@@ -77,14 +77,6 @@ impl <T: Target> Vbo<T> {
     }
   }
 }
-
-/*impl Vbo<Attributes> {
-  fn translate_target(&self) -> GLenum { gl::ARRAY_BUFFER }
-}
-
-impl Vbo<Indices> {
-  fn translate_target(&self) -> GLenum { gl::ELEMENT_ARRAY_BUFFER }
-}*/
 
 impl <T> Drop for Vbo<T> {
   fn drop(&mut self) {
