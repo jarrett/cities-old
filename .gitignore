@@ -8,6 +8,8 @@ assets/fonts/*
 saves/* 
 !saves/.gitkeep
 blender/__pycache__/*
+native/win64/*
+!native/win64/readme.txt
 
 #********** rust template********** 
 

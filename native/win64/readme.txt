@@ -1,0 +1,1 @@
+Download the precompiled GLFW binaries and extract glfw3.lib to this folder.
