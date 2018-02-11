@@ -1,4 +1,5 @@
 extern crate cgmath;
+extern crate freetype;
 extern crate gl;
 extern crate glfw;
 extern crate image;

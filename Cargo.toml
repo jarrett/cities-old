@@ -7,7 +7,7 @@ authors = ["Jarrett Colby <jarrettcolby@gmail.com>"]
 gl = "*"
 cgmath = {git = "https://github.com/brendanzab/cgmath.git"}
 #collision = {git = "https://github.com/kvark/collision-rs"}
-#freetype-rs = "*"
+freetype-rs = "*"
 image = "*"
 #num = "*"
 libc = "*"
