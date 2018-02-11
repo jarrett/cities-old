@@ -1,5 +1,6 @@
 extern crate gl;
 extern crate glfw;
+extern crate libc;
 
 mod mode;
 mod opengl;

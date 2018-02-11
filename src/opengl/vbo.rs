@@ -11,7 +11,7 @@ pub struct Vbo<T> {
 
 pub struct Attributes;
 pub struct Indices;
-trait Target {
+pub trait Target {
   fn new() -> Self;
   fn as_gl_enum(&self) -> GLenum;
 }
@@ -38,7 +38,7 @@ impl <T: Target> Vbo<T> {
   fn translate_target(&self) -> GLenum {
     self.target.as_gl_enum()
   }
-  
+
   pub unsafe fn bind(&self) {
     gl::BindBuffer(self.translate_target(), self.id);
   }
